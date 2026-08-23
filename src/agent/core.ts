@@ -1,7 +1,7 @@
 import { MemWalClient } from '../memory/memwal-client.js';
 import { SafetyGuardian, SafetyCheckResult } from './safety.js';
 import { formatContextPrompt, GAID3_SYSTEM_PROMPT } from './prompt.js';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export interface Gaid3Response {
   message: string;
@@ -17,14 +17,14 @@ export interface Gaid3Response {
 
 export class Gaid3Agent {
   private memory: MemWalClient;
-  private aiClient?: GoogleGenAI;
+  private aiClient?: GoogleGenerativeAI;
 
   constructor(memoryClient?: MemWalClient) {
     this.memory = memoryClient || new MemWalClient();
     const apiKey = process.env.GEMINI_API_KEY;
     if (apiKey && apiKey !== 'your_gemini_api_key_here') {
       try {
-        this.aiClient = new GoogleGenAI({ apiKey });
+        this.aiClient = new GoogleGenerativeAI(apiKey);
       } catch (err) {
         // Fallback to local rule-based response generator
       }
@@ -54,12 +54,10 @@ export class Gaid3Agent {
     let replyText = '';
     if (this.aiClient) {
       try {
+        const model = this.aiClient.getGenerativeModel({ model: 'gemini-1.5-flash' });
         const fullPrompt = formatContextPrompt(trimmed, recalled);
-        const response = await this.aiClient.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: fullPrompt
-        });
-        replyText = response.text || '';
+        const response = await model.generateContent(fullPrompt);
+        replyText = response.response.text() || '';
       } catch (err) {
         replyText = this.generateEmpatheticFallback(trimmed, recalled, safetyAssessment);
       }

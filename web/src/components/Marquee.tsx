@@ -1,6 +1,6 @@
 import React from 'react';
 
-const MARQUEE_TEXT = 'SPARK · RENDER · IGNITE · UNFOLD · GENESIS · EVOLVE · PURPOSE · BEYOND · ';
+const MARQUEE_TEXT = 'WALRUS MEMORY · CALM ONBOARDING · ZERO FEAR · DECENTRALIZED · SOVEREIGN AI · STEP BY STEP · WEB3 MADE SAFE · GAID3 · ';
 
 export const Marquee: React.FC = () => {
   return (

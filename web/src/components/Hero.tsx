@@ -1,9 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-const LEFT_WORDS = ['spark', 'imagine', 'evolve', 'render'];
-const RIGHT_WORDS = ['blaze', 'genesis', 'purpose', 'ignite'];
+const LEFT_WORDS = ['patient', 'memory', 'walrus', 'safety'];
+const RIGHT_WORDS = ['guided', 'secure', 'sovereign', 'empathy'];
 
-export const Hero: React.FC = () => {
+interface HeroProps {
+  onOpenChat?: () => void;
+}
+
+export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
   const sectionRef = useRef<HTMLElement>(null);
   const [progress, setProgress] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
@@ -50,9 +54,17 @@ export const Hero: React.FC = () => {
         backgroundColor: '#EC612C'
       }}
     >
+      {/* Top Floating Badge */}
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 text-xs text-white/90 shadow-lg">
+        <span className="w-2 h-2 rounded-full bg-[#90EE90] animate-pulse"></span>
+        <span className="font-medium tracking-wide">Walrus Memory Active</span>
+        <span className="text-white/40">|</span>
+        <span className="text-white/70">Web3 Onboarding Guide</span>
+      </div>
+
       {/* Layer B: Sticky text overlay (z-index 5) */}
       <div className="sticky top-0 h-screen w-full z-[5] pointer-events-none">
-        {/* "BEYOND" stacked title */}
+        {/* "GAID3" stacked title */}
         <div className="absolute inset-0 flex items-start justify-center pt-[2vh] md:pt-[3vh]">
           <div className="relative leading-[0.85] tracking-tight select-none">
             {/* Layer 0 (back) - #89CFF0 */}
@@ -64,7 +76,7 @@ export const Hero: React.FC = () => {
                 transform: `translateY(${layer0Offset})`
               }}
             >
-              BEYOND
+              GAID3
             </h1>
 
             {/* Layer 1 - #EC612C */}
@@ -76,7 +88,7 @@ export const Hero: React.FC = () => {
                 transform: `translateY(${layer1Offset})`
               }}
             >
-              BEYOND
+              GAID3
             </h1>
 
             {/* Layer 2 - #90EE90 */}
@@ -88,7 +100,7 @@ export const Hero: React.FC = () => {
                 transform: `translateY(${layer2Offset})`
               }}
             >
-              BEYOND
+              GAID3
             </h1>
 
             {/* Layer 3 (front) - #FFFFFF */}
@@ -100,7 +112,7 @@ export const Hero: React.FC = () => {
                 transform: 'translateY(0)'
               }}
             >
-              BEYOND
+              GAID3
             </h1>
           </div>
         </div>
@@ -162,7 +174,7 @@ export const Hero: React.FC = () => {
       <div className="absolute inset-0 z-10 pointer-events-none">
         <img
           src="https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260801_104316_80b428ea-dc99-4399-afb3-8ccb7b34b2d0.png&w=1280&q=85"
-          alt="Beyond Hero Character"
+          alt="Gaid3 Web3 Onboarding AI Agent"
           className="absolute bottom-0 left-1/2 -translate-x-1/2 w-auto max-w-none block"
           style={{
             height: '115%',
@@ -171,6 +183,22 @@ export const Hero: React.FC = () => {
           }}
         />
       </div>
+
+      {/* Bottom Interactive Trigger Pill (z-index 20) */}
+      {onOpenChat && (
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
+          <button
+            onClick={onOpenChat}
+            className="group flex items-center gap-3 bg-white text-[#EC612C] font-semibold px-6 py-3.5 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200"
+          >
+            <span className="w-2.5 h-2.5 rounded-full bg-[#EC612C] group-hover:animate-ping"></span>
+            <span className="font-poppins tracking-wide text-sm md:text-base">Start Safe Onboarding with Gaid3</span>
+            <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </button>
+        </div>
+      )}
     </section>
   );
 };

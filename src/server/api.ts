@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { Gaid3Agent } from '../agent/core.js';
@@ -18,7 +18,7 @@ app.use(express.json());
 const agent = new Gaid3Agent();
 
 // Health Check
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (_req: Request, res: Response) => {
   res.json({
     status: 'online',
     agent: 'Gaid3',
@@ -29,7 +29,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Chat / Interaction endpoint
-app.post('/api/chat', async (req, res) => {
+app.post('/api/chat', async (req: Request, res: Response) => {
   try {
     const { message } = req.body;
     if (!message) {
@@ -44,13 +44,13 @@ app.post('/api/chat', async (req, res) => {
 });
 
 // Walrus Memory profile inspection
-app.get('/api/memory', async (req, res) => {
+app.get('/api/memory', async (_req: Request, res: Response) => {
   const profile = agent.getMemory().getProfile();
   res.json(profile);
 });
 
 // Trigger Walrus Memory Sync
-app.post('/api/memory/sync', async (req, res) => {
+app.post('/api/memory/sync', async (_req: Request, res: Response) => {
   try {
     const result = await agent.getMemory().syncToWalrus();
     res.json({
@@ -65,7 +65,7 @@ app.post('/api/memory/sync', async (req, res) => {
 });
 
 // Pre-flight Safety Evaluation
-app.post('/api/safety', (req, res) => {
+app.post('/api/safety', (req: Request, res: Response) => {
   const { actionText } = req.body;
   if (!actionText) {
     return res.status(400).json({ error: 'actionText is required.' });
@@ -75,7 +75,7 @@ app.post('/api/safety', (req, res) => {
 });
 
 // Curated Onboarding Guides
-app.get('/api/guides', (req, res) => {
+app.get('/api/guides', (_req: Request, res: Response) => {
   res.json({
     guides: [SUI_WALLET_SETUP_GUIDE, SAFE_SWAP_GUIDE, WALRUS_SUI_ONBOARDING_GUIDE]
   });
