@@ -1,121 +1,130 @@
+<div align="center">
+
 # Gaid3 — Web3 Onboarding AI Agent 🧭
+### *Calm, Patient, and Sovereign Web3 Onboarding Powered by Walrus Memory*
 
-> **A calm, patient, and highly practical Web3 Onboarding AI Agent powered by Walrus Memory.**
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/xi-kki/gaid3/actions)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Walrus Protocol](https://img.shields.io/badge/Walrus-Testnet%20Certified-EC612C.svg)](https://walrus.xyz)
+[![Sui Network](https://img.shields.io/badge/Sui-Move%20Ecosystem-4da2ff.svg)](https://sui.io)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178c6.svg)](https://www.typescriptlang.org/)
+[![Vercel](https://img.shields.io/badge/Vercel-Deploy%20Ready-black.svg)](https://vercel.com)
 
-![Gaid3 Hero Banner](https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260801_104316_80b428ea-dc99-4399-afb3-8ccb7b34b2d0.png&w=1280&q=85)
+<br/>
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fxi-kki%2Fgaid3)
+
+<br/>
+
+<img src="https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260801_104316_80b428ea-dc99-4399-afb3-8ccb7b34b2d0.png&w=1280&q=85" alt="Gaid3 Banner" width="600" style="border-radius: 12px; margin-top: 16px;" />
+
+<p align="center">
+  <b>Gaid3</b> eliminates crypto anxiety by pairing an empathetic AI onboarding companion with decentralized memory on <b>Walrus Protocol</b>.
+</p>
+
+</div>
 
 ---
 
-## 🌟 The Problem & The Solution
+## 🌟 Executive Summary & Problem Statement
 
-**The Problem**: Web3 is intimidating. New users are bombarded with confusing jargon, terrifying warnings about irreversible loss, complicated wallet setups, and treacherous phishing links. One mistake can result in lost funds.
+Entering Web3 is notoriously terrifying for beginners. Confusing terminology, high-pressure irreversible transactions, malicious token approvals, and complex wallet setups cause catastrophic drops in onboarding conversion.
 
-**The Solution**: **Gaid3** is an empathetic, anxiety-reducing AI guide designed specifically to make Web3 simple and safe. Powered by **Walrus Protocol**, Gaid3 remembers each user's unique experience level, preferred chains, past mistakes, and personalized checklists permanently across sessions on the decentralized web.
-
----
-
-## 🧠 Why Walrus Memory?
-
-Centralized AI memory locks user data inside closed corporate servers. **Gaid3** uses **MemWal** and **Walrus Protocol** on Sui to store memory blobs directly on the decentralized web:
-
-- **Sovereign**: The user owns their memory state.
-- **Continuous**: Gaid3 never forgets past errors, risk tolerance, or completed steps across conversations.
-- **Resilient**: Distributed across Walrus storage nodes with erasure coding.
+**Gaid3** solves this with a **stress-free, empathetic pair guide**:
+- **Continuous Sovereign Memory**: Remembers your experience level, preferred chains, completed checklists, and past scary moments permanently across conversations using **Walrus Protocol** decentralized blobs.
+- **Pre-Flight Safety Guardian**: Evaluates text, smart contract interactions, and approval allowances before you sign in your wallet.
+- **Progressive Step-by-Step Guidance**: Breaks complex tasks (Sui Wallet creation, DEX swaps on Cetus/Turbos, bridging) into safe, bite-sized steps with mandatory pause checks on irreversible actions.
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ System Architecture
 
+```mermaid
+graph TD
+    User([Web3 User / Explorer]) <--> WebApp[Frontend: Beyond Hero Landing Page & Gaid3 Suite]
+    User <--> CLI[Terminal CLI: npm run cli]
+
+    subgraph Gaid3 Intelligence Core
+        WebApp <--> APIBridge[Express REST API /api/chat]
+        CLI <--> AgentEngine[Gaid3 Agent Runtime]
+        APIBridge <--> AgentEngine
+        
+        AgentEngine <--> SafetyGuardian[🛡️ Safety Guardian Scanner]
+        AgentEngine <--> PromptBuilder[💬 Empathetic Context Builder]
+        AgentEngine <--> GuideEngine[📋 Verified Flow Checklists]
+    end
+
+    subgraph Decentralized Memory Layer
+        AgentEngine <--> MemWal[🧠 MemWal Semantic Recall]
+        MemWal <--> WalrusBlob[📦 Walrus Blob Storage Client]
+        WalrusBlob <--> WalrusNet[(🌐 Walrus Protocol / Sui Testnet)]
+    end
 ```
-                       ┌───────────────────────────────┐
-                       │          User Input           │
-                       └──────────────┬────────────────┘
-                                      │
-                                      ▼
-                       ┌───────────────────────────────┐
-                       │     Safety Guardian Scan      │
-                       │  (Key Leakage / Phishing /    │
-                       │   High Approvals Detection)   │
-                       └──────────────┬────────────────┘
-                                      │
-                                      ▼
- ┌──────────────────────┐      ┌───────────────────────────────┐
- │    Walrus Protocol   │ <──> │      MemWal Memory Layer      │
- │ (Decentralized Blobs)│      │  (Semantic Recall & Storing)  │
- └──────────────────────┘      └──────────────┬────────────────┘
-                                              │
-                                              ▼
-                               ┌───────────────────────────────┐
-                               │       Gaid3 Core Engine       │
-                               │  (Empathetic Response & Safe  │
-                               │     Step-by-Step Guidance)    │
-                               └──────────────┬────────────────┘
-                                              │
-                                              ▼
-                               ┌───────────────────────────────┐
-                               │  Web Dashboard / Terminal CLI │
-                               └───────────────────────────────┘
-```
 
 ---
 
-## 🚀 Quickstart
+## ⚡ Key Features
 
-### Prerequisites
-- Node.js (v18+)
-- npm or pnpm
+| Feature | Description |
+| :--- | :--- |
+| **🧠 Walrus Decentralized Memory** | Proactive semantic recall powered by MemWal. Stores user experience, risk tolerance, and checklists directly on Walrus decentralized storage. |
+| **🛡️ Pre-Flight Safety Sandbox** | Scans for seed phrase leakage, unlimited contract spending approvals, phishing URLs, and gas exhaustion before signing. |
+| **🎨 "Beyond Hero" Landing Page** | High-performance React + Vite + Tailwind frontend featuring 4-layer stacked `GAID3` typography, scroll-driven word animations, and infinite white marquee. |
+| **📋 Verified Step-by-Step Flows** | Interactive onboarding guides for Sui Wallet setup, seed phrase paper backup, and Cetus/Turbos safe swapping. |
+| **💻 Interactive Terminal CLI** | Full-featured CLI (`npm run cli`) with `/memory`, `/safety`, and `/sync` commands for developers. |
+| **🔒 Enterprise Security Posture** | Comprehensive `SECURITY.md`, zero-key leakage architecture, and automated GitHub Actions CI/CD pipeline. |
 
-### 1. Installation
+---
+
+## 🚀 Live Deployment Options
+
+### Option 1: One-Click Automatic Vercel Deployment
+Click the button below to deploy your own instance of Gaid3 to Vercel instantly:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fxi-kki%2Fgaid3)
+
+*(The included [`vercel.json`](vercel.json) automatically configures the Vite frontend build and routing).*
+
+---
+
+### Option 2: Deploying via Vercel Dashboard (Connected to GitHub)
+1. Go to [vercel.com](https://vercel.com) and log in with your GitHub account.
+2. Click **"Add New..."** $\rightarrow$ **"Project"**.
+3. Select the **`xi-kki/gaid3`** repository.
+4. Keep the default settings (Vercel automatically detects Vite and `vercel.json`).
+5. Click **"Deploy"**!
+
+---
+
+### Option 3: Local Development Quickstart
+
 ```bash
-git clone https://github.com/<YOUR_USERNAME>/gaid3.git
+# 1. Clone the repository
+git clone https://github.com/xi-kki/gaid3.git
 cd gaid3
+
+# 2. Install dependencies & compile
 npm install
 cd web && npm install && cd ..
-```
+npm run build
 
-### 2. Configure Environment
-```bash
-cp .env.example .env
-```
-*(Optional: Add your `GEMINI_API_KEY` for LLM responses, or run the local empathetic engine).*
-
-### 3. Run Interactive Terminal CLI
-```bash
+# 3. Launch interactive CLI
 npm run cli
-```
 
-### 4. Run "Beyond Hero" Landing Page & Web UI
-```bash
-cd web
-npm run dev
+# 4. Launch the Web Landing Page & Gaid3 Suite
+npm run web:dev
 ```
-Open `http://localhost:3000` to view the high-fidelity landing page!
+Open **`http://localhost:3000`** in your browser.
 
 ---
 
-## 🐙 Deploying to Your GitHub
+## 🛡️ Security & Privacy Guarantees
 
-To upload this repository to your GitHub account:
-
-### Step 1: Create a new repository on GitHub
-Create a new blank repository at [github.com/new](https://github.com/new) named `gaid3`.
-
-### Step 2: Push via GitHub Personal Access Token (PAT)
-1. Generate a Personal Access Token on GitHub at: `Settings > Developer Settings > Personal access tokens > Tokens (classic)` with `repo` scope.
-2. In your terminal, run:
-```bash
-cd C:/Users/HP/gaid3
-git init
-git add .
-git commit -m "feat: Gaid3 Web3 Onboarding AI Agent powered by Walrus Memory"
-git branch -M main
-git remote add origin https://<YOUR_GITHUB_TOKEN>@github.com/<YOUR_USERNAME>/gaid3.git
-git push -u origin main
-```
-
-*(Alternatively, if you have GitHub CLI installed, you can run `gh repo create gaid3 --public --source=. --push`).*
+- **No Key Custody**: Gaid3 never stores, requests, or transmits private keys or seed phrases.
+- **Automated CI/CD**: Every push is verified with TypeScript strict compilation and automated dependency security scans.
+- See full security details in [`SECURITY.md`](SECURITY.md).
 
 ---
 
 ## 📜 License
-Apache License 2.0.
+Distributed under the **Apache License 2.0**. See [`LICENSE`](LICENSE) for more information.

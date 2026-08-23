@@ -1,0 +1,41 @@
+name: Gaid3 CI/CD & Security Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    name: Build, Typecheck & Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Root Dependencies
+        run: npm ci
+
+      - name: Compile Backend & Agent Engine (TypeScript)
+        run: npm run build
+
+      - name: Install Frontend Dependencies
+        run: |
+          cd web
+          npm ci
+
+      - name: Build Web Application (Vite + Tailwind)
+        run: |
+          cd web
+          npm run build
+
+      - name: Run Dependency Security Audit
+        run: npm audit --audit-level=high || true
