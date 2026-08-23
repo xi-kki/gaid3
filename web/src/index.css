@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Bamboly Demo";
+  src: url("https://db.onlinewebfonts.com/t/58ee300970307a1cc399e6bebd7617ce.woff2") format("woff2"),
+       url("https://db.onlinewebfonts.com/t/58ee300970307a1cc399e6bebd7617ce.woff") format("woff"),
+       url("https://db.onlinewebfonts.com/t/58ee300970307a1cc399e6bebd7617ce.ttf") format("truetype");
+  font-display: swap;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #000000;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+.font-bamboly {
+  font-family: "Bamboly Demo", sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.font-poppins {
+  font-family: "Poppins", sans-serif;
+}
+
+@keyframes marquee-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-track {
+  display: flex;
+  white-space: nowrap;
+  animation: marquee-scroll 18s linear infinite;
+}
