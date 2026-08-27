@@ -1,7 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-
-const LEFT_WORDS = ['patient', 'memory', 'walrus', 'safety'];
-const RIGHT_WORDS = ['guided', 'secure', 'sovereign', 'empathy'];
+import { ZkLoginButton } from './ZkLoginButton';
 
 interface HeroProps {
   onOpenChat?: () => void;
@@ -184,9 +182,10 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
         />
       </div>
 
-      {/* Bottom Interactive Trigger Pill (z-index 20) */}
-      {onOpenChat && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
+      {/* Bottom Actions (z-index 20) — zkLogin + Chat */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 pointer-events-auto flex flex-col items-center gap-3">
+        <ZkLoginButton />
+        {onOpenChat && (
           <button
             onClick={onOpenChat}
             className="group flex items-center gap-3 bg-white text-[#EC612C] font-semibold px-6 py-3.5 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200"
@@ -197,8 +196,9 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
             </svg>
           </button>
-        </div>
-      )}
+        )}
+        <p className="text-[10px] text-white/70 bg-black/30 backdrop-blur px-2 py-0.5 rounded-full">zkLogin = Google → Sui address, no seed phrase • Upgrade to Slush later</p>
+      </div>
     </section>
   );
 };
