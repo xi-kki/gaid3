@@ -21,32 +21,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(503).json({ error: 'AI not configured. Set GROQ_API_KEY in Vercel env.' });
   }
 
-  const systemPrompt = `You are a mind-map generator for Gaid3 (Web3 onboarding + study tool like NotebookLM).
-Given source text, output ONLY valid JSON (no markdown, no fences) with shape:
+  const systemPrompt = `You are a mind-map generator for Gaid3. Output ONLY valid JSON (no thinking, no markdown, no text, no explanations). 
+Shape:
 {
   "title": "string",
-  "nodes": [{ "id": "n1", "label": "short label (2-5 words)", "level": 0|1|2, "summary": "one-sentence" }],
-  "edges": [{ "from": "n1", "to": "n2", "label": "relation (optional)" }]
+  "nodes": [{ "id": "n1", "label": "short label (2-5 words)", "level": 0, "summary": "one-sentence" }],
+  "edges": [{ "from": "n1", "to": "n2", "label": "relation" }]
 }
-Constraints:
-- 1 root (level 0), 4-7 branches (level 1), 2-4 leaves per branch (level 2) => 12-22 nodes total
-- Labels concise, summaries clear
-- Edges from root to branches, branches to leaves
-- Keep Web3 terms explained simply if present
-`;
+Constraints: 1 root (level 0), 4-7 branches (level 1), 2-4 leaves per branch (level 2) = 12-22 nodes. Web3 terms explained simply.`;
 
   try {
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${GROQ_API_KEY}` },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: 'groq/compound-mini',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Title hint: ${title ?? 'Untitled'}\n\nSource:\n${sourceText.slice(0, 12000)}` },
         ],
         temperature: 0.3,
-        response_format: { type: 'json_object' },
       }),
     });
 
@@ -56,7 +50,29 @@ Constraints:
     }
     const data = (await groqRes.json()) as { choices?: Array<{ message?: { content?: string } }> };
     const raw = data.choices?.[0]?.message?.content ?? '{}';
-    const json = JSON.parse(raw) as unknown;
+    
+    // Robust JSON extraction for qwen (handles markdown, extra text, etc.)
+    let jsonStr = raw.trim();
+    // Remove markdown fences
+    jsonStr = jsonStr.replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
+    // Find first { and last }
+    const firstBrace = jsonStr.indexOf('{');
+    const lastBrace = jsonStr.lastIndexOf('}');
+    if (firstBrace >= 0 && lastBrace > firstBrace) {
+      jsonStr = jsonStr.slice(firstBrace, lastBrace + 1);
+    }
+    // Fix common JSON issues
+    jsonStr = jsonStr
+      .replace(/,\s*([}\]])/g, '$1')  // trailing commas
+      .replace(/(['"]?)([a-zA-Z_][a-zA-Z0-9_]*)(['"]?)\s*:/g, '"$2":');  // unquoted keys
+    
+    let json;
+    try {
+      json = JSON.parse(jsonStr);
+    } catch {
+      // Fallback: return structured error with raw
+      return res.status(502).json({ error: 'Model returned invalid JSON', raw: raw.slice(0, 1000) });
+    }
 
     // Light validation
     const asObj = json as { title?: string; nodes?: unknown[]; edges?: unknown[] };

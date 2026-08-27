@@ -22,33 +22,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(503).json({ error: 'AI not configured. Set GROQ_API_KEY in Vercel env.' });
   }
 
-  const systemPrompt = `You are a flashcard generator for Gaid3 (NotebookLM-style study tool).
-Output ONLY valid JSON (no markdown fences) with shape:
-{
-  "cards": [
-    { "id": "c1", "front": "question (clear, concise)", "back": "answer (1-3 sentences)", "hint": "optional hint", "tag": "topic" }
-  ]
-}
-Requirements:
-- Exactly ${count} cards
-- Difficulty: ${difficulty}
-- Mix: definition, why/how, scenario, common mistake
-- For Web3 content, include safety angle (seed phrase, approvals, phishing) where relevant
-- Front = active recall question. Back = correct answer, no hedging.
-`;
+  const systemPrompt = `You are a flashcard generator for Gaid3. Output ONLY valid JSON (no thinking, no markdown, no text, no code fences).
+Shape: { "cards": [{ "id": "c1", "front": "question", "back": "answer (1-3 sentences)", "hint": "optional", "tag": "topic" }] }
+Requirements: Exactly ${count} cards, difficulty ${difficulty}, mix definition/why-how/scenario/mistake. Web3 safety angle. Front=question, Back=answer. No special characters, plain ASCII only.`;
 
   try {
     const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${GROQ_API_KEY}` },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: 'groq/compound-mini',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: sourceText.slice(0, 12000) },
         ],
         temperature: 0.4,
-        response_format: { type: 'json_object' },
       }),
     });
 
@@ -58,11 +46,37 @@ Requirements:
     }
     const data = (await groqRes.json()) as { choices?: Array<{ message?: { content?: string } }> };
     const raw = data.choices?.[0]?.message?.content ?? '{}';
-    const json = JSON.parse(raw) as unknown;
+    
+    // Robust JSON extraction
+    let jsonStr = raw.trim();
+    jsonStr = jsonStr.replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
+    const firstBrace = jsonStr.indexOf('{');
+    const lastBrace = jsonStr.lastIndexOf('}');
+    if (firstBrace >= 0 && lastBrace > firstBrace) {
+      jsonStr = jsonStr.slice(firstBrace, lastBrace + 1);
+    }
+    // Fix common JSON issues + sanitize unicode chars that break JSON
+    jsonStr = jsonStr
+      .replace(/,\s*([}\]])/g, '$1')
+      .replace(/(['"]?)([a-zA-Z_][a-zA-Z0-9_]*)(['"]?)\s*:/g, '"$2":')
+      .replace(/[\u2010-\u2015]/g, '-')  // en/em dashes to hyphen
+      .replace(/[\u2018\u2019]/g, "'")   // smart quotes
+      .replace(/[\u201C\u201D]/g, '"')   // smart double quotes
+      .replace(/[\u00A0]/g, ' ')         // non-breaking space
+      .replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16))); // decode escaped unicode
+    
+    let json;
+    try {
+      json = JSON.parse(jsonStr);
+    } catch {
+      return res.status(502).json({ error: 'Model returned invalid JSON', raw: raw.slice(0, 1000) });
+    }
+    
     const asObj = json as { cards?: unknown[] };
     if (!Array.isArray(asObj.cards)) {
       return res.status(502).json({ error: 'Model returned invalid shape', raw: raw.slice(0, 1000) });
     }
+
     return res.json(json);
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error';

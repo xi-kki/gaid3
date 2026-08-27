@@ -120,12 +120,12 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
         {/* Side word columns */}
         <div
           className="absolute inset-0 flex items-end justify-between px-[3vw] md:px-[6vw] pointer-events-none"
-          style={{ bottom: '-8vh' }}
+          style={{ bottom: '-4vh' }}
         >
           {/* Left Column */}
           <div className="flex flex-col gap-1 md:gap-2">
             {LEFT_WORDS.map((word, i) => {
-              const leftOffset = -(60 + i * 40) * scaleFactor * (1 - progress);
+              const leftOffset = -(120 + i * 50) * scaleFactor * (1 - progress);
               return (
                 <span
                   key={word}
@@ -148,7 +148,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
           {/* Right Column */}
           <div className="flex flex-col gap-1 md:gap-2 items-end">
             {RIGHT_WORDS.map((word, i) => {
-              const rightOffset = +(60 + i * 40) * scaleFactor * (1 - progress);
+              const rightOffset = +(120 + i * 50) * scaleFactor * (1 - progress);
               return (
                 <span
                   key={word}

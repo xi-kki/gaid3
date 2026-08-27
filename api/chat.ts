@@ -48,7 +48,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(429).json({ error: 'Too many requests. Please wait a minute and try again.' });
   }
 
-  const { message, context, history } = req.body;
+  const { message, context, history } = (req.body || {}) as { message?: string; context?: string; history?: Array<{ role: string; content: string }> };
 
   if (!message || typeof message !== 'string' || message.trim().length === 0) {
     return res.status(400).json({ error: 'Message is required' });
@@ -85,7 +85,8 @@ ${(history || []).slice(-6).map((m: any) => `${m.role}: ${m.content}`).join('\n'
     if (GROQ_API_KEY) {
       endpoint = 'https://api.groq.com/openai/v1/chat/completions';
       apiKey = GROQ_API_KEY;
-      model = 'llama-3.3-70b-versatile';
+      // Use available model on this account
+      model = 'qwen/qwen3.6-27b';
       headers['Authorization'] = `Bearer ${apiKey}`;
       body = { model, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: message }], temperature: 0.6, max_tokens: 1200 };
     } else if (XAI_API_KEY) {
@@ -136,8 +137,8 @@ ${(history || []).slice(-6).map((m: any) => `${m.role}: ${m.content}`).join('\n'
     const reply = data.choices?.[0]?.message?.content || "I'm here with you — what would you like to explore next in Web3?";
     return res.json({ reply, model });
 
-  } catch (err: any) {
-    console.error('chat handler error', err);
-    return res.status(500).json({ error: err.message || 'Internal error' });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Unknown error';
+    return res.status(500).json({ error: msg });
   }
 }

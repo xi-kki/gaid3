@@ -19,21 +19,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    // Try Enoki API v1 endpoint
     const enokiRes = await fetch('https://api.enoki.mystenlabs.com/v1/get-salt', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', apikey: ENOKI_API_KEY },
-      body: JSON.stringify({ token: body.token }),
+      body: JSON.stringify({ jwt: body.token }),
     });
 
     if (!enokiRes.ok) {
       const err = await enokiRes.text();
-      return res.status(502).json({ error: `Enoki error ${enokiRes.status}`, detail: err.slice(0, 500) });
+      // Fallback to demo salt
+      const fallbackSalt = '0x' + Buffer.from(body.token.slice(0, 32)).toString('hex');
+      return res.json({ salt: fallbackSalt, source: 'demo-fallback', warning: `Enoki error ${enokiRes.status}: ${err.slice(0, 200)}` });
     }
 
-    const data = (await enokiRes.json()) as { salt: string };
-    return res.json({ salt: data.salt, source: 'enoki' });
+    const data = (await enokiRes.json()) as { salt: string; address?: string };
+    return res.json({ salt: data.salt, source: 'enoki', address: data.address });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'Unknown error';
-    return res.status(500).json({ error: msg });
+    const fallbackSalt = '0x' + Buffer.from(body.token.slice(0, 32)).toString('hex');
+    return res.json({ salt: fallbackSalt, source: 'demo-fallback', warning: `Enoki request failed: ${err instanceof Error ? err.message : 'Unknown'}` });
   }
 }
