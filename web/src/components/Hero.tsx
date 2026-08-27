@@ -199,7 +199,6 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
             </svg>
           </button>
         )}
-        <p className="text-[10px] text-white/70 bg-black/30 backdrop-blur px-2 py-0.5 rounded-full">zkLogin = Google → Sui address, no seed phrase • Upgrade to Slush later</p>
       </div>
     </section>
   );
