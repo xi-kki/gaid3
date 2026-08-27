@@ -72,10 +72,35 @@ graph TD
 | **🎨 "Beyond Hero" Landing Page** | High-performance React + Vite + Tailwind frontend featuring 4-layer stacked `GAID3` typography, scroll-driven word animations, and infinite white marquee. |
 | **📋 Verified Step-by-Step Flows** | Interactive onboarding guides for Sui Wallet setup, seed phrase paper backup, and Cetus/Turbos safe swapping. |
 | **💻 Interactive Terminal CLI** | Full-featured CLI (`npm run cli`) with `/memory`, `/safety`, and `/sync` commands for developers. |
-| **🔒 Enterprise Security Posture** | Comprehensive `SECURITY.md`, zero-key leakage architecture, and automated GitHub Actions CI/CD pipeline. |
-| **📚 NotebookLM Studio** | **NEW:** Ingest URL/text → Generate *Mind Maps* (JSON → React Flow) + *Flashcards* (SRS) + Briefing — all server-side, Walrus-certified. Try the **📚 Studio** tab in the chat drawer. |
 | **🔐 Server-Side AI Proxy** | Groq/Grok keys stay in Vercel env (never `VITE_`), rate-limited `/api/chat`, Zod-validated, CORS-locked. No more exposed `gsk_...` in bundle. |
+| **🆔 zkLogin (Sui)** | **NEW:** Google OAuth → Sui address in 1 click, **no seed phrase**. Uses `@mysten/sui/zklogin` + Enoki salt. Upgrade to Slush later. |
 | **🔒 Enterprise Security Posture** | Comprehensive `SECURITY.md`, zero-key leakage architecture, and automated GitHub Actions CI/CD pipeline. |
+
+## 🆔 zkLogin — Zero-Fear Onboarding (New)
+
+Gaid3 now uses **Sui zkLogin** for instant, seedless onboarding:
+
+1. **User clicks** "Continue with Google" on landing page (Hero)
+2. **Google OAuth** returns JWT with `nonce` bound to ephemeral keypair
+3. **Enoki salt service** (optional) derives deterministic salt → Sui address = `jwtToAddress(jwt, salt)`
+4. **Address persists** in `sessionStorage` → shows in Hero + attaches to Walrus Memory
+5. **Upgrade path**: "Backup to Slush seed" guide when ready
+
+**Env (Vercel → Settings → Environment Variables):**
+```
+VITE_GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
+VITE_ENOKI_API_KEY=enoki_... (optional, production)
+```
+
+**API:**
+```
+POST /api/auth/zklogin { action: "get-salt", token: "<id_token>" }
+  → { salt: "0x...", source: "enoki|demo-fallback" }
+```
+
+**Docs:** See `web/src/hooks/useZkLogin.ts` + `web/src/components/ZkLoginButton.tsx` for full flow.
+
+---
 
 ## 📚 NotebookLM Studio (New)
 
