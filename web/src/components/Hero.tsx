@@ -119,53 +119,31 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
           </div>
         </div>
 
-        {/* Side word columns */}
+        {/* Centered attribute words under GAID3 */}
         <div
-          className="absolute inset-0 flex items-end justify-between px-[3vw] md:px-[6vw] pointer-events-none"
-          style={{ bottom: '-4vh' }}
+          className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
+          style={{ top: '55vh' }}
         >
-          <div className="flex flex-col gap-1 md:gap-2">
-            {LEFT_WORDS.map((word, i) => {
-              const leftOffset = -(120 + i * 50) * scaleFactor * (1 - progress);
-              return (
-                <span
-                  key={word}
-                  className="font-poppins uppercase text-white/80 select-none"
-                  style={{
-                    fontWeight: 500,
-                    fontSize: 'clamp(1.6rem, 7vw, 9rem)',
-                    lineHeight: 1.1,
-                    opacity,
-                    transform: `translateX(${leftOffset}px)`,
-                    transition: 'transform 0.05s linear'
-                  }}
-                >
-                  {word}
-                </span>
-              );
-            })}
-          </div>
-
-          <div className="flex flex-col gap-1 md:gap-2 items-end">
-            {RIGHT_WORDS.map((word, i) => {
-              const rightOffset = +(120 + i * 50) * scaleFactor * (1 - progress);
-              return (
-                <span
-                  key={word}
-                  className="font-poppins uppercase text-white/80 text-right select-none"
-                  style={{
-                    fontWeight: 500,
-                    fontSize: 'clamp(1.6rem, 7vw, 9rem)',
-                    lineHeight: 1.1,
-                    opacity,
-                    transform: `translateX(${rightOffset}px)`,
-                    transition: 'transform 0.05s linear'
-                  }}
-                >
-                  {word}
-                </span>
-              );
-            })}
+          <div className="flex flex-wrap justify-center gap-2 md:gap-3">
+            {[
+              'patient', 'memory', 'walrus', 'safety',
+              'guided', 'secure', 'sovereign', 'empathy'
+            ].map((word, i) => (
+              <span
+                key={word}
+                className="font-poppins uppercase text-white/60 select-none"
+                style={{
+                  fontWeight: 400,
+                  fontSize: 'clamp(0.7rem, 2vw, 1.2rem)',
+                  lineHeight: 1.3,
+                  opacity,
+                  transform: `translateY(${20 * (1 - progress)}px)`,
+                  transition: 'transform 0.05s linear, opacity 0.05s linear'
+                }}
+              >
+                {word}
+              </span>
+            ))}
           </div>
         </div>
       </div>
