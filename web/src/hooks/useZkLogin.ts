@@ -1,12 +1,14 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import { generateNonce, generateRandomness, getExtendedEphemeralPublicKey, jwtToAddress } from '@mysten/sui/zklogin';
-import { CoreClient as SuiClient } from '@mysten/sui/client';
+import { CoreClient } from '@mysten/sui/client';
+
+/// <reference types="vite/client" />
+
 const getFullnodeUrl = (net: string) => `https://fullnode.${net === 'mainnet' ? '' : net + '.'}sui.io:443`;
 
 const SUI_NETWORK = (import.meta.env.VITE_SUI_NETWORK as string) || 'testnet';
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
-const ENOKI_API_KEY = import.meta.env.VITE_ENOKI_API_KEY as string | undefined; // server proxy preferred later
 
 export type ZkLoginState =
   | { status: 'idle' }
@@ -16,10 +18,12 @@ export type ZkLoginState =
 
 const STORAGE_KEY = 'gaid3_zklogin';
 
-function getSuiClient() {
-  return new SuiClient({ url: getFullnodeUrl(SUI_NETWORK as 'testnet' | 'mainnet' | 'devnet') });
-}
+// CoreClient is abstract in types but concrete at runtime - use type assertion
+const SuiClient = CoreClient as unknown as new (options: { url: string }) => { getObjects: (...args: unknown[]) => Promise<unknown> };
 
+function getSuiClient() {
+  return new SuiClient({ url: getFullnodeUrl(SUI_NETWORK) });
+}
 export function useZkLogin() {
   const [state, setState] = useState<ZkLoginState>(() => {
     try {
@@ -43,7 +47,7 @@ export function useZkLogin() {
       const idToken = params.get('id_token');
       const saved = sessionStorage.getItem('gaid3_ephemeral');
       if (idToken && saved) {
-        const { ephemeralPrivateKey, randomness, maxEpoch, salt: savedSalt } = JSON.parse(saved) as {
+        const { salt: savedSalt } = JSON.parse(saved) as {
           ephemeralPrivateKey: string;
           randomness: string;
           maxEpoch: number;
@@ -52,25 +56,21 @@ export function useZkLogin() {
         const finalize = async () => {
           try {
             setState({ status: 'loading' });
-            // Try Enoki salt service if configured, else use saved random salt (demo)
+            // Get salt from server (Enoki key stays server-side)
             let salt = savedSalt;
-            if (ENOKI_API_KEY) {
-              try {
-                const res = await fetch('https://api.enoki.mystenlabs.com/v1/get-salt', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json', apikey: ENOKI_API_KEY },
-                  body: JSON.stringify({ token: idToken }),
-                });
-                if (res.ok) {
-                  const j = (await res.json()) as { salt: string };
-                  if (j.salt) salt = j.salt;
-                }
-              } catch {}
-            }
-            const address = jwtToAddress(idToken, salt);
-            // Optional: verify on Sui (light check)
+            try {
+              const res = await fetch('/api/auth/zklogin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'get-salt', token: idToken }),
+              });
+              if (res.ok) {
+                const data = (await res.json()) as { salt: string; source?: string };
+                if (data.salt) salt = data.salt;
+              }
+            } catch {}
+            const address = jwtToAddress(idToken, salt, false);
             void getSuiClient();
-            void ephemeralPrivateKey; void randomness; void maxEpoch;
             setState({ status: 'ready', address, jwt: idToken, salt });
             window.history.replaceState(null, '', window.location.pathname);
             sessionStorage.removeItem('gaid3_ephemeral');
@@ -100,18 +100,10 @@ export function useZkLogin() {
     try {
       const ephemeralKeyPair = new Ed25519Keypair();
       const randomness = generateRandomness();
-      const maxEpoch = 20; // ~ 20 epochs (~ 20*24h) valid
+      const maxEpoch = 20;
       const ephemeralPublicKey = ephemeralKeyPair.getPublicKey();
-      const nonce = generateNonce(ephemeralPublicKey as unknown as Parameters<typeof generateNonce>[0], maxEpoch, randomness);
-
-      // Fetch salt (demo: generate random 32-byte hex if no Enoki)
-      let salt: string;
-      if (ENOKI_API_KEY) {
-        // Will be fetched after JWT; use placeholder now
-        salt = BigInt('0x' + randomness.slice(0, 16)).toString();
-      } else {
-        salt = BigInt('0x' + Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2, '0')).join('')).toString();
-      }
+      // Type assertion: Ed25519PublicKey extends PublicKey but TS doesn't know
+      const nonce = generateNonce(ephemeralPublicKey as unknown as import('@mysten/sui/cryptography').PublicKey, maxEpoch, randomness);
 
       sessionStorage.setItem(
         'gaid3_ephemeral',
@@ -119,8 +111,7 @@ export function useZkLogin() {
           ephemeralPrivateKey: ephemeralKeyPair.getSecretKey(),
           randomness,
           maxEpoch,
-          salt,
-          extendedEphemeralPublicKey: getExtendedEphemeralPublicKey(ephemeralPublicKey as unknown as Parameters<typeof getExtendedEphemeralPublicKey>[0]),
+          extendedEphemeralPublicKey: getExtendedEphemeralPublicKey(ephemeralPublicKey as unknown as import('@mysten/sui/cryptography').PublicKey),
         })
       );
 

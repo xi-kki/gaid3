@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ZkLoginButton } from './ZkLoginButton';
 
+const LEFT_WORDS = ['patient', 'memory', 'walrus', 'safety'];
+const RIGHT_WORDS = ['guided', 'secure', 'sovereign', 'empathy'];
 interface HeroProps {
   onOpenChat?: () => void;
 }
