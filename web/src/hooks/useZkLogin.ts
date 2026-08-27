@@ -93,7 +93,7 @@ export function useZkLogin() {
 
   const login = useCallback(async () => {
     if (!GOOGLE_CLIENT_ID) {
-      setState({ status: 'error', error: 'Missing VITE_GOOGLE_CLIENT_ID — add it in Vercel env (Google Cloud Console → OAuth Client ID)' });
+      setState({ status: 'error', error: 'Google OAuth not configured' });
       return;
     }
     setState({ status: 'loading' });
