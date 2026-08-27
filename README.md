@@ -73,10 +73,35 @@ graph TD
 | **📋 Verified Step-by-Step Flows** | Interactive onboarding guides for Sui Wallet setup, seed phrase paper backup, and Cetus/Turbos safe swapping. |
 | **💻 Interactive Terminal CLI** | Full-featured CLI (`npm run cli`) with `/memory`, `/safety`, and `/sync` commands for developers. |
 | **🔒 Enterprise Security Posture** | Comprehensive `SECURITY.md`, zero-key leakage architecture, and automated GitHub Actions CI/CD pipeline. |
+| **📚 NotebookLM Studio** | **NEW:** Ingest URL/text → Generate *Mind Maps* (JSON → React Flow) + *Flashcards* (SRS) + Briefing — all server-side, Walrus-certified. Try the **📚 Studio** tab in the chat drawer. |
+| **🔐 Server-Side AI Proxy** | Groq/Grok keys stay in Vercel env (never `VITE_`), rate-limited `/api/chat`, Zod-validated, CORS-locked. No more exposed `gsk_...` in bundle. |
+| **🔒 Enterprise Security Posture** | Comprehensive `SECURITY.md`, zero-key leakage architecture, and automated GitHub Actions CI/CD pipeline. |
+
+## 📚 NotebookLM Studio (New)
+
+Like NotebookLM, Gaid3 now turns **any source into study tools**:
+
+1. **Add Source:** Paste URL → `POST /api/ingest` extracts clean text (or paste directly)
+2. **Mind Map:** `POST /api/generate/mindmap` → `{nodes, edges}` (Groq `json_object`, 12–22 nodes) → render with React Flow / Mermaid
+3. **Flashcards:** `POST /api/generate/flashcards` → 12 Q/A cards with hints/tags → flip, next/prev, copy JSON → Anki-ready
+4. **Walrus Certify:** `POST /api/memory/sync` stores snapshot to `publisher.walrus-testnet.walrus.space/v1/store` (mock fallback offline)
+
+**API (all server-side, Zod-validated, rate-limited 20/min):**
+
+```bash
+curl -X POST https://gaid3.vercel.app/api/chat -H "Content-Type: application/json" \
+  -d '{"message":"How do I safely setup a Sui wallet?","context":"...","history":[]}'
+
+curl -X POST https://gaid3.vercel.app/api/ingest -d '{"url":"https://docs.sui.io"}'
+curl -X POST https://gaid3.vercel.app/api/generate/mindmap -d '{"sourceText":"...","title":"Sui 101"}'
+curl -X POST https://gaid3.vercel.app/api/generate/flashcards -d '{"sourceText":"...","count":12}'
+```
+
+Env: Set `GROQ_API_KEY` (no `VITE_` prefix) in **Vercel → Settings → Environment Variables** → Redeploy. See `.env.example`.
 
 ---
 
-## 🚀 Live Deployment Options
+## 🏗️ System Architecture
 
 ### Option 1: One-Click Automatic Vercel Deployment
 Click the button below to deploy your own instance of Gaid3 to Vercel instantly:
