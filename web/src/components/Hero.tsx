@@ -19,10 +19,6 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
     setTimeout(() => onOpenChat?.(), 500);
   };
 
-  const handleZkLoginComplete = () => {
-    // zkLogin handles its own flow, chat opens via timeout in handleStartOnboarding
-  };
-
   useEffect(() => {
     const handleScrollAndResize = () => {
       if (!sectionRef.current) return;
@@ -51,7 +47,6 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
   const scaleFactor = isMobile ? 0.5 : 1;
   const opacity = 0.35 + progress * 0.65;
 
-  // Title layer offsets
   const layer0Offset = isMobile ? '18px' : '36px';
   const layer1Offset = isMobile ? '12px' : '24px';
   const layer2Offset = isMobile ? '6px' : '12px';
@@ -78,7 +73,6 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
         {/* "GAID3" stacked title */}
         <div className="absolute inset-0 flex items-start justify-center pt-[2vh] md:pt-[3vh]">
           <div className="relative leading-[0.85] tracking-tight select-none">
-            {/* Layer 0 (back) - #89CFF0 */}
             <h1
               className="absolute inset-0 font-bamboly uppercase select-none pointer-events-none"
               style={{
@@ -90,7 +84,6 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
               GAID3
             </h1>
 
-            {/* Layer 1 - #EC612C */}
             <h1
               className="absolute inset-0 font-bamboly uppercase select-none pointer-events-none"
               style={{
@@ -102,7 +95,6 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
               GAID3
             </h1>
 
-            {/* Layer 2 - #90EE90 */}
             <h1
               className="absolute inset-0 font-bamboly uppercase select-none pointer-events-none"
               style={{
@@ -114,7 +106,6 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
               GAID3
             </h1>
 
-            {/* Layer 3 (front) - #FFFFFF */}
             <h1
               className="relative font-bamboly uppercase select-none pointer-events-none"
               style={{
@@ -133,7 +124,6 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
           className="absolute inset-0 flex items-end justify-between px-[3vw] md:px-[6vw] pointer-events-none"
           style={{ bottom: '-4vh' }}
         >
-          {/* Left Column */}
           <div className="flex flex-col gap-1 md:gap-2">
             {LEFT_WORDS.map((word, i) => {
               const leftOffset = -(120 + i * 50) * scaleFactor * (1 - progress);
@@ -156,7 +146,6 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
             })}
           </div>
 
-          {/* Right Column */}
           <div className="flex flex-col gap-1 md:gap-2 items-end">
             {RIGHT_WORDS.map((word, i) => {
               const rightOffset = +(120 + i * 50) * scaleFactor * (1 - progress);
@@ -209,9 +198,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
             </svg>
           </button>
         ) : (
-          <>
-            <ZkLoginButton onLoginSuccess={handleZkLoginComplete} />
-          </>
+          <ZkLoginButton />
         )}
       </div>
     </section>
