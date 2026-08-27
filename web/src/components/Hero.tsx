@@ -135,7 +135,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
                   className="font-poppins uppercase text-white/70 select-none"
                   style={{
                     fontWeight: 500,
-                    fontSize: 'clamp(1rem, 4vw, 2.5rem)',
+                    fontSize: 'clamp(1.2rem, 5vw, 3rem)',
                     lineHeight: 1.1,
                     opacity,
                     transform: `translateX(${leftOffset}px)`,
@@ -158,7 +158,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
                   className="font-poppins uppercase text-white/70 text-right select-none"
                   style={{
                     fontWeight: 500,
-                    fontSize: 'clamp(1rem, 4vw, 2.5rem)',
+                    fontSize: 'clamp(1.2rem, 5vw, 3rem)',
                     lineHeight: 1.1,
                     opacity,
                     transform: `translateX(${rightOffset}px)`,
