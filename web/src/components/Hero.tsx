@@ -3,6 +3,7 @@ import { ZkLoginButton } from './ZkLoginButton';
 
 const LEFT_WORDS = ['patient', 'memory', 'walrus', 'safety'];
 const RIGHT_WORDS = ['guided', 'secure', 'sovereign', 'empathy'];
+
 interface HeroProps {
   onOpenChat?: () => void;
 }
@@ -11,6 +12,16 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
   const sectionRef = useRef<HTMLElement>(null);
   const [progress, setProgress] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  const [showZkLogin, setShowZkLogin] = useState(false);
+
+  const handleStartOnboarding = () => {
+    setShowZkLogin(true);
+    setTimeout(() => onOpenChat?.(), 500);
+  };
+
+  const handleZkLoginComplete = () => {
+    // zkLogin handles its own flow, chat opens via timeout in handleStartOnboarding
+  };
 
   useEffect(() => {
     const handleScrollAndResize = () => {
@@ -184,12 +195,11 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
         />
       </div>
 
-      {/* Bottom Actions (z-index 20) — zkLogin + Chat */}
+      {/* Bottom Actions (z-index 20) — Onboarding Flow */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 pointer-events-auto flex flex-col items-center gap-3">
-        <ZkLoginButton />
-        {onOpenChat && (
+        {!showZkLogin ? (
           <button
-            onClick={onOpenChat}
+            onClick={handleStartOnboarding}
             className="group flex items-center gap-3 bg-white text-[#EC612C] font-semibold px-6 py-3.5 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200"
           >
             <span className="w-2.5 h-2.5 rounded-full bg-[#EC612C] group-hover:animate-ping"></span>
@@ -198,6 +208,10 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
             </svg>
           </button>
+        ) : (
+          <>
+            <ZkLoginButton onLoginSuccess={handleZkLoginComplete} />
+          </>
         )}
       </div>
     </section>
