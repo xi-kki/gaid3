@@ -49,7 +49,19 @@ Requirements: Exactly ${count} cards, difficulty ${difficulty}, mix definition/w
     
     // Robust JSON extraction
     let jsonStr = raw.trim();
+    // Remove markdown fences
     jsonStr = jsonStr.replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
+    // Strip qwen3 thinking output
+    if (jsonStr.includes("Here's a thinking process:") || jsonStr.includes('thinking process')) {
+      const thinkEnd = jsonStr.lastIndexOf('\n\n');
+      const processEnd = jsonStr.lastIndexOf('Final answer:');
+      let cutIndex = -1;
+      if (thinkEnd >= 0) cutIndex = thinkEnd + 2;
+      else if (processEnd >= 0) cutIndex = processEnd + 13;
+      if (cutIndex >= 0 && cutIndex < jsonStr.length) {
+        jsonStr = jsonStr.slice(cutIndex).trim();
+      }
+    }
     const firstBrace = jsonStr.indexOf('{');
     const lastBrace = jsonStr.lastIndexOf('}');
     if (firstBrace >= 0 && lastBrace > firstBrace) {

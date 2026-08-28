@@ -132,11 +132,33 @@ ${(history || []).slice(-6).map((m: any) => `${m.role}: ${m.content}`).join('\n'
       console.error('Upstream AI error', groqRes.status, errText.slice(0, 500));
       return res.status(502).json({ error: `AI upstream error (${groqRes.status}). Try again in a moment.` });
     }
-
     const data: any = await groqRes.json();
-    const reply = data.choices?.[0]?.message?.content || "I'm here with you — what would you like to explore next in Web3?";
-    return res.json({ reply, model });
+    let reply = data.choices?.[0]?.message?.content || "I'm here with you — what would you like to explore next in Web3?";
 
+    // Strip qwen3 thinking/reasoning output (everything before final answer)
+    // qwen3 outputs thinking in formats like: "Here's a thinking process:\n...\n\nFinal answer:" or "<think>...</think>"
+    if (reply.includes('Here\'s a thinking process:') || reply.includes('<think>') || reply.includes('thinking process')) {
+      // Try to find the actual answer after thinking markers
+      const thinkEnd = reply.lastIndexOf('</think>');
+      const processEnd = reply.lastIndexOf('Final answer:');
+      const hereEnd = reply.lastIndexOf('Here\'s a thinking process:');
+      let cutIndex = -1;
+      if (thinkEnd >= 0) cutIndex = thinkEnd + 8; // '</think>'.length
+      else if (processEnd >= 0) cutIndex = processEnd + 13; // 'Final answer:'.length
+      else if (hereEnd >= 0) cutIndex = hereEnd;
+      if (cutIndex >= 0 && cutIndex < reply.length) {
+        reply = reply.slice(cutIndex).trim();
+      }
+    }
+    // Also handle "Here's a thinking process:\n\n" pattern
+    if (reply.startsWith('Here\'s a thinking process:')) {
+      const firstBlankLine = reply.indexOf('\n\n');
+      if (firstBlankLine >= 0) {
+        reply = reply.slice(firstBlankLine + 2).trim();
+      }
+    }
+
+    return res.json({ reply, model });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error';
     return res.status(500).json({ error: msg });

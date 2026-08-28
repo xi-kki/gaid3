@@ -51,10 +51,21 @@ Constraints: 1 root (level 0), 4-7 branches (level 1), 2-4 leaves per branch (le
     const data = (await groqRes.json()) as { choices?: Array<{ message?: { content?: string } }> };
     const raw = data.choices?.[0]?.message?.content ?? '{}';
     
-    // Robust JSON extraction for qwen (handles markdown, extra text, etc.)
+    // Robust JSON extraction for qwen (handles markdown, extra text, thinking, etc.)
     let jsonStr = raw.trim();
     // Remove markdown fences
     jsonStr = jsonStr.replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
+    // Strip qwen3 thinking output
+    if (jsonStr.includes("Here's a thinking process:") || jsonStr.includes('thinking process')) {
+      const thinkEnd = jsonStr.lastIndexOf('\n\n');
+      const processEnd = jsonStr.lastIndexOf('Final answer:');
+      let cutIndex = -1;
+      if (thinkEnd >= 0) cutIndex = thinkEnd + 2;
+      else if (processEnd >= 0) cutIndex = processEnd + 13;
+      if (cutIndex >= 0 && cutIndex < jsonStr.length) {
+        jsonStr = jsonStr.slice(cutIndex).trim();
+      }
+    }
     // Find first { and last }
     const firstBrace = jsonStr.indexOf('{');
     const lastBrace = jsonStr.lastIndexOf('}');
