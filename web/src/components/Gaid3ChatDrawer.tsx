@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { NotebookLMStudio } from './studio/NotebookLMStudio';
 
 interface Message { sender: 'gaid3' | 'user'; text: string; timestamp: string; safetyNotice?: boolean; }
 
@@ -103,6 +104,15 @@ export const Gaid3ChatDrawer: React.FC<{ isOpen: boolean; onClose: () => void }>
             ))}
             <div ref={chatBottomRef} />
           </div>
+          <NotebookLMStudio
+            history={messages.map(m => ({ role: m.sender === 'user' ? 'user' : 'assistant', content: m.text }))}
+            walrusFacts={facts}
+            walrusChecklists={[]}
+            walrusMistakes={[]}
+            walrusBlobId={walrusBlobId}
+            experienceLevel="beginner"
+            riskTolerance="very_low"
+          />
         </main>
 
         <form onSubmit={handleSendMessage} className="p-4 border-t border-white/10 bg-[#0a0a0a]/95 backdrop-blur-sm sticky bottom-0">
