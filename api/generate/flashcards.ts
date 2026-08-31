@@ -19,7 +19,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { sourceText, count = 12, difficulty = 'beginner' } = parsed.data;
 
   if (!GROQ_API_KEY) {
-    return res.status(503).json({ error: 'AI not configured. Set GROQ_API_KEY in Vercel env.' });
+    // Offline fallback: deterministic mock flashcards for local dev without API keys
+    const mockCards = [
+      { id: 'c1', front: 'What is a seed phrase?', back: 'A 12 or 24-word recovery phrase that lets you restore your wallet. Write it on paper, never screenshot it.', hint: 'Paper only', tag: 'wallet' },
+      { id: 'c2', front: 'Why avoid unlimited token approvals?', back: 'Unlimited approvals let a smart contract spend ALL your tokens. Always approve the exact amount needed.', hint: 'Exact amount only', tag: 'safety' },
+      { id: 'c3', front: 'What is Sui?', back: 'A fast, low-fee layer-1 blockchain using Move language and object-centric architecture.', hint: 'Layer-1', tag: 'sui' },
+      { id: 'c4', front: 'What is Walrus Protocol?', back: 'Decentralized blob storage on Sui. Stores data across nodes, retrievable via Blob ID.', hint: 'Blob storage', tag: 'walrus' },
+    ];
+    const cards = [];
+    for (let i = 0; i < count; i++) {
+      const base = mockCards[i % mockCards.length];
+      cards.push({ ...base, id: `c${i + 1}` });
+    }
+    return res.json({ cards });
   }
 
   const systemPrompt = `You are a flashcard generator for Gaid3. Output ONLY valid JSON (no thinking, no markdown, no text, no code fences).

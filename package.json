@@ -2,15 +2,16 @@
   "name": "gaid3",
   "version": "1.0.0",
   "description": "A calm, patient, and highly practical Web3 Onboarding AI Agent powered by Walrus Memory.",
-  "main": "dist/agent/core.js",
-  "type": "module",
+  "main": "dist/src/agent/core.js",
   "scripts": {
     "build": "tsc",
     "cli": "tsx src/cli/index.ts",
     "server": "tsx src/server/api.ts",
     "web:dev": "vite web",
     "web:build": "vite build web",
-    "dev": "concurrently \"tsx src/server/api.ts\" \"vite web\""
+    "dev": "concurrently \"tsx src/server/api.ts\" \"vite web\"",
+    "mock:notebook": "node scripts/mock-open-notebook.mjs",
+    "dev:notebook": "concurrently \"npm run mock:notebook\" \"tsx src/server/api.ts\" \"vite web\""
   },
   "keywords": [
     "web3",
@@ -34,6 +35,7 @@
     "inquirer": "^9.3.2",
     "nanoid": "^5.0.7",
     "ora": "^8.0.1",
+    "youtube-transcript": "^1.3.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {

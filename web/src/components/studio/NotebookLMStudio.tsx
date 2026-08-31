@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-type ToolType = 'mindmap' | 'flashcards' | 'quiz' | 'summary' | 'podcast' | 'ask' | 'search';
+type ToolType = 'mindmap' | 'flashcards' | 'quiz' | 'summary' | 'podcast' | 'ask' | 'search' | 'simplify';
 
 interface Props {
   history: Array<{ role: string; content: string }>;
@@ -20,6 +20,7 @@ const TOOLS: Array<{ id: ToolType; label: string; icon: string; desc: string }> 
   { id: 'podcast', label: 'Podcast', icon: '🎙️', desc: '2-speaker script' },
   { id: 'ask', label: 'Ask', icon: '💬', desc: 'Q&A with citations' },
   { id: 'search', label: 'Search', icon: '🔍', desc: 'Vector search memory' },
+  { id: 'simplify', label: 'Simplify', icon: '🎓', desc: 'Explain concepts simply' },
 ];
 
 export const NotebookLMStudio: React.FC<Props> = ({ history, walrusFacts, walrusChecklists, walrusMistakes, walrusBlobId, experienceLevel, riskTolerance }) => {
@@ -42,8 +43,8 @@ export const NotebookLMStudio: React.FC<Props> = ({ history, walrusFacts, walrus
         walrusFacts, walrusChecklists, walrusMistakes, walrusBlobId, experienceLevel, riskTolerance, type,
         title: 'Gaid3 Learning Session',
       };
-      if (type === 'ask' || type === 'search') {
-        if (!question.trim()) { setError('Enter a question to ask/search'); setLoading(false); return; }
+      if (type === 'ask' || type === 'search' || type === 'simplify') {
+        if (!question.trim()) { setError('Enter a question to ask'); setLoading(false); return; }
         body.question = question;
       }
       if (type === 'quiz') body.count = 5;
@@ -83,17 +84,24 @@ export const NotebookLMStudio: React.FC<Props> = ({ history, walrusFacts, walrus
         ))}
       </div>
 
-      {(active==='ask' || active==='search') && (
+      {(active==='ask' || active==='search' || active==='simplify') && (
         <div className="flex gap-2">
-          <input value={question} onChange={e=>setQuestion(e.target.value)} placeholder={active==='ask' ? 'Ask Walrus memory e.g. What is seed phrase?' : 'Search e.g. wallet safety'} className="flex-1 px-3 py-2 rounded-lg bg-black/30 border border-white/10 text-sm text-white placeholder:text-white/30" />
+          <input value={question} onChange={e=>setQuestion(e.target.value)} placeholder={active==='ask' ? 'Ask Walrus memory e.g. What is seed phrase?' : active==='search' ? 'Search e.g. wallet safety' : 'e.g. Simplify What is zkLogin'} className="flex-1 px-3 py-2 rounded-lg bg-black/30 border border-white/10 text-sm text-white placeholder:text-white/30" />
           <button onClick={()=>generate(active!)} disabled={loading} className="px-4 py-2 rounded-lg bg-white text-black text-sm font-medium">Go</button>
         </div>
       )}
 
       {loading && <div className="text-xs text-white/60 animate-pulse">Generating {active} from Walrus + chat…</div>}
       {error && <div className="text-xs text-red-300 bg-red-950/30 border border-red-500/30 p-2 rounded">{error}</div>}
-      {result !== null && (
-        <div className="max-h-[320px] overflow-auto p-3 rounded-lg bg-black/40 border border-white/10 text-xs font-mono text-white/80 whitespace-pre-wrap">
+      {result !== null && typeof result === 'object' && (result as { answer?: string }).answer ? (
+        <div className="max-h-[320px] overflow-auto p-3 rounded-lg bg-black/40 border border-white/10 text-sm text-white/90 whitespace-pre-wrap">
+          {(result as { answer: string }).answer}
+          <div className="mt-2">
+            <button onClick={()=> navigator.clipboard.writeText((result as { answer: string }).answer)} className="px-2 py-1 rounded bg-white/10 text-[11px]">Copy Text</button>
+          </div>
+        </div>
+      ) : (
+      <div className="max-h-[320px] overflow-auto p-3 rounded-lg bg-black/40 border border-white/10 text-xs font-mono text-white/80 whitespace-pre-wrap">
           {String(JSON.stringify(result, null, 2)).slice(0, 8000)}
           <div className="mt-2 flex gap-2">
             <button onClick={()=> navigator.clipboard.writeText(JSON.stringify(result, null, 2))} className="px-2 py-1 rounded bg-white/10 text-[11px]">Copy JSON</button>
@@ -101,7 +109,6 @@ export const NotebookLMStudio: React.FC<Props> = ({ history, walrusFacts, walrus
           </div>
         </div>
       )}
-      <div className="text-[10px] text-white/30">Uses GROQ compound-mini on Vercel. Add OPEN_NOTEBOOK_URL to auto-upgrade to open-notebook vector search + podcast TTS.</div>
     </div>
   );
 };

@@ -1,0 +1,24 @@
+# Real open-notebook (lfnovo/open-notebook) — requires Docker Desktop
+# Usage: docker compose -f docker-compose.notebook.yml up -d
+# Then set OPEN_NOTEBOOK_URL=http://localhost:5055 OPEN_NOTEBOOK_PASSWORD=<your-key>
+services:
+  surrealdb:
+    image: surrealdb/surrealdb:v2
+    command: ["start", "--log", "info", "--user", "root", "--pass", "root", "rocksdb:/mydata/mydatabase.db"]
+    ports: ["127.0.0.1:8000:8000"]
+    volumes: ["./surreal_data:/mydata"]
+    environment: [SURREAL_EXPERIMENTAL_GRAPHQL=true]
+    restart: unless-stopped
+  open_notebook:
+    image: lfnovo/open_notebook:v1-latest
+    ports: ["5055:5055", "8502:8502"]
+    depends_on: [surrealdb]
+    environment:
+      OPEN_NOTEBOOK_ENCRYPTION_KEY: "change-me-to-a-secret-string-min-16-chars"
+      SURREAL_URL: "ws://surrealdb:8000/rpc"
+      SURREAL_USER: "root"
+      SURREAL_PASSWORD: "root"
+      SURREAL_NAMESPACE: "open_notebook"
+      SURREAL_DATABASE: "open_notebook"
+      # Configure Groq via UI after first boot: Settings -> Models -> Add Groq qwen/qwen3.6-27b
+    restart: unless-stopped

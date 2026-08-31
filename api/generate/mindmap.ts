@@ -18,7 +18,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { sourceText, title } = parsed.data;
 
   if (!GROQ_API_KEY) {
-    return res.status(503).json({ error: 'AI not configured. Set GROQ_API_KEY in Vercel env.' });
+    // Offline fallback: deterministic mock mindmap for local dev without API keys
+    return res.json({
+      title: title || 'Web3 Onboarding Mind Map',
+      nodes: [
+        { id: 'n1', label: 'Web3 Onboarding', level: 0, summary: 'Your journey with Gaid3' },
+        { id: 'n2', label: 'Wallet Setup', level: 1, summary: 'Installing and securing a crypto wallet' },
+        { id: 'n3', label: 'Sui Blockchain', level: 1, summary: 'Fast L1 with low fees' },
+        { id: 'n4', label: 'Walrus Storage', level: 1, summary: 'Decentralized blob storage' },
+        { id: 'n5', label: 'Safety First', level: 1, summary: 'Avoiding scams and bad approvals' },
+        { id: 'n6', label: 'Paper Backup', level: 2, summary: 'Write seed phrase on physical paper' },
+        { id: 'n7', label: 'Verify URLs', level: 2, summary: 'Only use official bookmarked links' },
+        { id: 'n8', label: 'SUI Tokens', level: 2, summary: 'Native gas token for transactions' },
+        { id: 'n9', label: 'Blob ID', level: 2, summary: 'Unique identifier for stored data' },
+        { id: 'n10', label: 'Test Net First', level: 2, summary: 'Try swaps with small amounts' },
+      ],
+      edges: [
+        { from: 'n1', to: 'n2', label: 'starts with' },
+        { from: 'n1', to: 'n3', label: 'learns' },
+        { from: 'n1', to: 'n4', label: 'stores in' },
+        { from: 'n1', to: 'n5', label: 'follows' },
+        { from: 'n2', to: 'n6', label: 'requires' },
+        { from: 'n2', to: 'n7', label: 'warns about' },
+        { from: 'n3', to: 'n8', label: 'uses' },
+        { from: 'n4', to: 'n9', label: 'produces' },
+        { from: 'n5', to: 'n10', label: 'advises' },
+      ],
+    });
   }
 
   const systemPrompt = `You are a mind-map generator for Gaid3. Output ONLY valid JSON (no thinking, no markdown, no text, no explanations). 

@@ -3,6 +3,20 @@ type VercelRequest = { method?: string; body?: unknown; headers: Record<string,s
 type VercelResponse = { status: (n:number)=>VercelResponse; json: (o:unknown)=>VercelResponse; setHeader:(k:string,v:string)=>void; end:()=>void; };
 import { z } from 'zod';
 
+// YouTube video ID extraction
+function extractYouTubeVideoId(url: string): string | null {
+  try {
+    const u = new URL(url);
+    if (u.hostname === 'youtu.be') return u.pathname.slice(1);
+    if (u.hostname.includes('youtube.com')) {
+      // youtu.be/xyz or youtube.com/watch?v=xyz or youtube.com/embed/xyz
+      return u.searchParams.get('v') || u.pathname.split('/')[2] || null;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
 const BodySchema = z.object({
   url: z.string().url().optional(),
   text: z.string().max(50000).optional(),
@@ -21,24 +35,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let resolvedTitle = title ?? 'Untitled source';
 
     if (url && !text) {
-      // Use Jina AI reader for clean extraction (no key needed for basic)
-      const jinaUrl = `https://cc.bingj.com/cache.cgi?d=xxx&u=${encodeURIComponent(url)}`;
-      // Primary: Jina reader
-      const jinaRes = await fetch(`https://localhost-placeholder.invalid`, { method: 'GET' }).catch(() => null);
-      void jinaRes; void jinaUrl;
-      // Simple fetch + strip (Vercel-friendly, no extra dep)
-      const pageRes = await fetch(url, {
-        headers: { 'User-Agent': 'Gaid3-NotebookLM/1.0 (+https://gaid3.vercel.app)' },
-        redirect: 'follow',
-      });
-      if (!pageRes.ok) return res.status(502).json({ error: `Fetch failed ${pageRes.status}` });
-      const html = await pageRes.text();
-      // Very light HTML -> text (avoid cheerio dep for now)
-      const withoutScripts = html.replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<style[\s\S]*?<\/style>/gi, ' ');
-      const textOnly = withoutScripts.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-      extracted = textOnly.slice(0, 20000);
-      const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-      if (titleMatch) resolvedTitle = titleMatch[1].trim().slice(0, 200);
+      const ytVideoId = extractYouTubeVideoId(url);
+      if (ytVideoId) {
+        // YouTube: fetch transcript via youtube-transcript (server-side)
+        const { YoutubeTranscript } = await import('youtube-transcript');
+        const tracks = await YoutubeTranscript.fetchTranscript(ytVideoId, {});
+        extracted = tracks.map(t => t.text).join(' ').slice(0, 20000);
+        resolvedTitle = title ?? `${tracks.length} transcript segments`;
+      } else {
+        // Generic URL: fetch + strip HTML
+        const pageRes = await fetch(url, {
+          headers: { 'User-Agent': 'Gaid3-NotebookLM/1.0 (+https://gaid3.vercel.app)' },
+          redirect: 'follow',
+        });
+        if (!pageRes.ok) return res.status(502).json({ error: `Fetch failed ${pageRes.status}` });
+        const html = await pageRes.text();
+        const withoutScripts = html.replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<style[\s\S]*?<\/style>/gi, ' ');
+        extracted = withoutScripts.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 20000);
+        const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+        if (titleMatch) resolvedTitle = titleMatch[1].trim().slice(0, 200);
+      }
     }
 
     if (extracted.length < 20) {

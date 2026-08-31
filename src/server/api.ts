@@ -1,84 +1,91 @@
-import express, { Request, Response } from 'express';
+import 'dotenv/config';
+import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-import { Gaid3Agent } from '../agent/core.js';
-import { SafetyGuardian } from '../agent/safety.js';
-import { SUI_WALLET_SETUP_GUIDE } from '../agent/guides/wallet-setup.js';
-import { SAFE_SWAP_GUIDE } from '../agent/guides/safe-swap.js';
-import { WALRUS_SUI_ONBOARDING_GUIDE } from '../agent/guides/sui-basics.js';
+import type { Request, Response, NextFunction } from 'express';
 
-dotenv.config();
+// Import Vercel-style API handlers (shared between Vercel deployment and local Express dev server)
+import healthHandler from '../../api/health.js';
+import chatHandler from '../../api/chat.js';
+import guidesHandler from '../../api/guides.js';
+import safetyHandler from '../../api/safety.js';
+import ingestHandler from '../../api/ingest.js';
+import zkloginHandler from '../../api/auth/zklogin.js';
+import syncHandler from '../../api/memory/sync.js';
+import flashcardsHandler from '../../api/generate/flashcards.js';
+import mindmapHandler from '../../api/generate/mindmap.js';
+import fromMemoryHandler from '../../api/generate/from-memory.js';
+
+// Gaid3Agent kept for the in-memory diagnostics endpoint (used by CLI `/memory`)
+import { Gaid3Agent } from '../agent/core.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    'https://gaid3.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:5173',
+  ],
+  credentials: true,
+}));
 app.use(express.json());
 
 const agent = new Gaid3Agent();
 
-// Health Check
-app.get('/api/health', (_req: Request, res: Response) => {
-  res.json({
-    status: 'online',
-    agent: 'Gaid3',
-    version: '1.0.0',
-    memoryProvider: 'Walrus Protocol (MemWal)',
-    timestamp: new Date().toISOString()
+/**
+ * Structural type matching the inline VercelRequest/VercelResponse shapes
+ * used across api/*.ts. Express Request/Response are a runtime superset;
+ * the assertions here bridge the minor header-type variance.
+ *
+ * Return type is `void` (not `void | Promise<void>`) so TypeScript's
+ * void-return-type rule allows handlers that chain return values.
+ */
+type VercelReq = {
+  method?: string;
+  body?: unknown;
+  headers: Record<string, string | string[] | undefined>;
+  query?: Record<string, string>;
+  socket: { remoteAddress?: string };
+};
+
+type VercelRes = {
+  status: (n: number) => VercelRes;
+  json: (o: unknown) => VercelRes;
+  setHeader: (k: string, v: string) => void;
+  end: () => void;
+};
+
+type VercelHandler = (req: VercelReq, res: VercelRes) => void;
+
+/** Mounts a Vercel-style handler on an Express route. */
+function mount(method: 'get' | 'post', path: string, handler: VercelHandler) {
+  app[method](path, (req: Request, res: Response) => {
+    handler(req as VercelReq, res as VercelRes);
   });
+}
+
+// --- API Routes (delegated to shared Vercel handler functions) ---
+mount('get', '/api/health', healthHandler);
+mount('post', '/api/chat', chatHandler);
+mount('get', '/api/guides', guidesHandler);
+mount('post', '/api/safety', safetyHandler);
+mount('post', '/api/ingest', ingestHandler);
+mount('post', '/api/auth/zklogin', zkloginHandler);
+mount('post', '/api/memory/sync', syncHandler);
+mount('post', '/api/generate/flashcards', flashcardsHandler);
+mount('post', '/api/generate/mindmap', mindmapHandler);
+mount('post', '/api/generate/from-memory', fromMemoryHandler);
+
+// In-memory memory profile (used by CLI `/memory` command; not a Vercel handler)
+app.get('/api/memory', (_req: Request, res: Response) => {
+  res.json(agent.getMemory().getProfile());
 });
 
-// Chat / Interaction endpoint
-app.post('/api/chat', async (req: Request, res: Response) => {
-  try {
-    const { message } = req.body;
-    if (!message) {
-      return res.status(400).json({ error: 'Message is required.' });
-    }
-
-    const response = await agent.chat(message);
-    res.json(response);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message || 'Internal agent error' });
-  }
-});
-
-// Walrus Memory profile inspection
-app.get('/api/memory', async (_req: Request, res: Response) => {
-  const profile = agent.getMemory().getProfile();
-  res.json(profile);
-});
-
-// Trigger Walrus Memory Sync
-app.post('/api/memory/sync', async (_req: Request, res: Response) => {
-  try {
-    const result = await agent.getMemory().syncToWalrus();
-    res.json({
-      success: true,
-      walrusBlobId: result.blobId,
-      epoch: result.epoch,
-      message: 'Memory snapshot successfully certified on Walrus decentralized storage.'
-    });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Pre-flight Safety Evaluation
-app.post('/api/safety', (req: Request, res: Response) => {
-  const { actionText } = req.body;
-  if (!actionText) {
-    return res.status(400).json({ error: 'actionText is required.' });
-  }
-  const result = SafetyGuardian.evaluateAction(actionText);
-  res.json(result);
-});
-
-// Curated Onboarding Guides
-app.get('/api/guides', (_req: Request, res: Response) => {
-  res.json({
-    guides: [SUI_WALLET_SETUP_GUIDE, SAFE_SWAP_GUIDE, WALRUS_SUI_ONBOARDING_GUIDE]
-  });
+// Catch-all error handler for Express
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+  console.error('Express error handler:', err);
+  res.status(500).json({ error: 'Internal server error' });
 });
 
 app.listen(PORT, () => {

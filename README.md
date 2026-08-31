@@ -104,28 +104,66 @@ POST /api/auth/zklogin { action: "get-salt", token: "<id_token>" }
 
 ## 📚 NotebookLM Studio (New)
 
-Like NotebookLM, Gaid3 now turns **any source into study tools**:
+Like NotebookLM, Gaid3 now turns **any source into study tools**. Powered by Groq `qwen/qwen3.6-27b` (chat) and `groq/compound-mini` (structured generation):
 
-1. **Add Source:** Paste URL → `POST /api/ingest` extracts clean text (or paste directly)
-2. **Mind Map:** `POST /api/generate/mindmap` → `{nodes, edges}` (Groq `json_object`, 12–22 nodes) → render with React Flow / Mermaid
+1. **Add Source:** Paste URL → `POST /api/ingest` extracts clean text. YouTube links automatically fetch transcripts via `youtube-transcript`.
+2. **Mind Map:** `POST /api/generate/mindmap` → `{nodes, edges}` (12–22 nodes)
 3. **Flashcards:** `POST /api/generate/flashcards` → 12 Q/A cards with hints/tags → flip, next/prev, copy JSON → Anki-ready
-4. **Walrus Certify:** `POST /api/memory/sync` stores snapshot to `publisher.walrus-testnet.walrus.space/v1/store` (mock fallback offline)
+4. **Quiz:** `POST /api/generate/from-memory` with `"type":"quiz"` → MCQs with explanations
+5. **Summary:** `POST /api/generate/from-memory` with `"type":"summary"` → 200-word overview + key points + takeaways
+6. **Ask / Search:** `POST /api/generate/from-memory` with `"type":"ask"` or `"type":"search"` → Q&A with citations from Walrus memory
+7. **Simplify:** `POST /api/generate/from-memory` with `"type":"simplify"` → explains Web3 concepts (whitepapers, docs, YouTube transcripts) in simple terms for beginners
+8. **Podcast:** `POST /api/generate/from-memory` with `"type":"podcast"` → 2-speaker script with Walrus memory references
+9. **Walrus Certify:** `POST /api/memory/sync` stores snapshot to Walrus Testnet (mock fallback offline)
 
-**API (all server-side, Zod-validated, rate-limited 20/min):**
+### 🔄 Open Notebook Integration
+
+**Local dev (no Docker needed):** Run the included mock — it implements the real open-notebook API backed by Groq:
+
+```bash
+npm run mock:notebook   # :5055, needs GROQ_API_KEY + OPEN_NOTEBOOK_PASSWORD=test
+npm run dev:notebook    # mock + api + web together
+# .env.local already has OPEN_NOTEBOOK_URL=http://localhost:5055
+curl -s -X POST http://localhost:3001/api/generate/from-memory -H "Content-Type: application/json" -d '{"type":"simplify","history":[{"role":"user","content":"Explain Sui"}],"question":"Explain zkLogin simply"}' | jq .source
+# → "open-notebook"  (via mock, Groq-backed)
+```
+
+**Production self-hosted (Docker):** Requires Docker Desktop:
+
+```bash
+docker compose -f docker-compose.notebook.yml up -d
+# UI: http://localhost:8502  API: http://localhost:5055
+# Configure a model in the UI: Settings → Models → Add Groq qwen/qwen3.6-27b
+# Then set OPEN_NOTEBOOK_URL + OPEN_NOTEBOOK_PASSWORD in Vercel env vars
+```
+
+When `OPEN_NOTEBOOK_URL` is set, Gaid3 routes through open-notebook (real or mock):
+ `ask`/`search`/`summary`/`simplify` → source chat (`POST /api/sources/{id}/chat/sessions/{sid}/messages`)
+ `mindmap`/`flashcards`/`quiz`/`podcast` → transformations (`POST /api/transformations/execute`)
+
+Fallback: when open-notebook is unreachable or returns an error, Gaid3 automatically uses Groq (`groq/compound-mini` / `qwen/qwen3.6-27b`) or offline fixtures — so the app works with or without open-notebook.
+
+**Endpoints (Zod-validated, rate-limited 20/min):**
 
 ```bash
 curl -X POST https://gaid3.vercel.app/api/chat -H "Content-Type: application/json" \
-  -d '{"message":"How do I safely setup a Sui wallet?","context":"...","history":[]}'
 
 curl -X POST https://gaid3.vercel.app/api/ingest -d '{"url":"https://docs.sui.io"}'
+curl -X POST https://gaid3.vercel.app/api/ingest -d '{"url":"https://youtu.be/dQw4w9WgXcQ"}'
 curl -X POST https://gaid3.vercel.app/api/generate/mindmap -d '{"sourceText":"...","title":"Sui 101"}'
 curl -X POST https://gaid3.vercel.app/api/generate/flashcards -d '{"sourceText":"...","count":12}'
+curl -X POST https://gaid3.vercel.app/api/generate/from-memory -d '{"type":"simplify","history":[...],"question":"Explain zkLogin"}'
 ```
 
-Env: Set `GROQ_API_KEY` (no `VITE_` prefix) in **Vercel → Settings → Environment Variables** → Redeploy. See `.env.example`.
+**Env vars** (Vercel Dashboard → Settings → Environment Variables):
 
----
-
+ `GROQ_API_KEY` — Yes — Groq API key (qwen/qwen3.6-27b + groq/compound-mini)
+ `VITE_GOOGLE_CLIENT_ID` — Yes — Google OAuth 2.0 Client ID (zkLogin)
+ `ENOKI_API_KEY` — Optional — Enoki private key for zkLogin salt
+ `OPEN_NOTEBOOK_URL` — Optional — open-notebook API URL (mock :5055 or Docker :5055)
+ `OPEN_NOTEBOOK_PASSWORD` — Optional — Bearer token for open-notebook
+ `YOUTUBE_API_KEY` — Optional — for private/unlisted YouTube transcripts
+ `XAI_API_KEY` / `GROK_API_KEY` / `GEMINI_API_KEY` — Optional — Fallback AIs
 ## 🏗️ System Architecture
 
 ### Option 1: One-Click Automatic Vercel Deployment
