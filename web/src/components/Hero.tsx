@@ -175,7 +175,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
       {/* Layer A: Character (z-index 10) */}
       <div className="absolute inset-0 z-10 pointer-events-none">
         <img
-          src="https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260801_104316_80b428ea-dc99-4399-afb3-8ccb7b34b2d0.png&w=1280&q=85"
+          src="/gaid3-new.png"
           alt="Gaid3 Web3 Onboarding AI Agent"
           className="absolute bottom-0 left-1/2 -translate-x-1/2 w-auto max-w-none block"
           style={{
