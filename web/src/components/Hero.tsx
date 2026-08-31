@@ -45,7 +45,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
   }, []);
 
   const scaleFactor = isMobile ? 0.5 : 1;
-  const opacity = 0.35 + progress * 0.65;
+  const opacity = 1;
 
   const layer0Offset = isMobile ? '18px' : '36px';
   const layer1Offset = isMobile ? '12px' : '24px';
