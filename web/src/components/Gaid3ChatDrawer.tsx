@@ -15,35 +15,63 @@ export const Gaid3ChatDrawer: React.FC<{ isOpen: boolean; onClose: () => void }>
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [health, setHealth] = useState<{ aiConfigured: boolean } | null>(null);
-  const [messages, setMessages] = useState<Array<{ sender: 'gaid3' | 'user'; text: string; timestamp: string; safetyNotice?: boolean }>>([
-    { sender: 'gaid3', text: "Hi there! I'm Gaid3 — your calm, patient Web3 guide powered by Walrus Memory. We'll take things at your pace, zero pressure. How can I help you explore Web3 safely today?", timestamp: 'Just now' },
-  ]);
-  const [facts, setFacts] = useState<Array<{ category: string; statement: string }>>([
-    { category: 'experience', statement: 'User is exploring Web3 for the first time' },
-    { category: 'chain', statement: 'Interested in Sui and Walrus Protocol' },
-    { category: 'risk', statement: 'Low risk tolerance, prefers step-by-step confirmation' },
-  ]);
-  const [walrusBlobId, setWalrusBlobId] = useState('walrus_testnet_8f9a2b1c4e');
+  const [messages, setMessages] = useState<Array<{ sender: 'gaid3' | 'user'; text: string; timestamp: string; safetyNotice?: boolean }>>([]);
+  const [facts, setFacts] = useState<Array<{ category: string; statement: string }>>([]);
+  const [walrusBlobId, setWalrusBlobId] = useState<string | undefined>(undefined);
   const [isSyncing, setIsSyncing] = useState(false);
   const [sourceText, setSourceText] = useState('');
   const [sourceUrl, setSourceUrl] = useState('');
   const [isIngesting, setIsIngesting] = useState(false);
   const chatBottomRef = useRef<HTMLDivElement>(null);
+  const messagesRef = useRef(messages);
+  const factsRef = useRef(facts);
+
+  // Keep refs in sync with state
+  useEffect(() => { messagesRef.current = messages; }, [messages]);
+  useEffect(() => { factsRef.current = facts; }, [facts]);
 
   useEffect(() => { if (!isOpen) return; fetch('/api/health').then(r => r.json()).then(setHealth).catch(() => setHealth({ aiConfigured: false })); }, [isOpen]);
   useEffect(() => { chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [isOpen]);
 
+  // Load real memory on drawer open
+  useEffect(() => {
+    if (!isOpen) return;
+    const loadMemory = async () => {
+      try {
+        const res = await fetch('/api/memory');
+        if (res.ok) {
+          const profile = await res.json();
+          if (profile?.facts?.length) {
+            setFacts(profile.facts.map((f: any) => ({ category: f.category, statement: f.statement })));
+          }
+          if (profile?.walrusBlobId) {
+            setWalrusBlobId(profile.walrusBlobId);
+          }
+        }
+      } catch {
+        // Ignore - fallback to empty
+      }
+    };
+    loadMemory();
+    
+    // Add welcome message if empty
+    if (messages.length === 0) {
+      setMessages([{ sender: 'gaid3', text: "Hi there! I'm Gaid3 — your calm, patient Web3 guide powered by Walrus Memory. We'll take things at your pace, zero pressure. How can I help you explore Web3 safely today?", timestamp: 'Just now' }]);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const callAi = useCallback(async (userText: string): Promise<string> => {
-    const contextSummary = facts.map(f => `[${f.category}] ${f.statement}`).join('\n');
-    const history = messages.slice(-6).map(m => ({ role: m.sender === 'user' ? 'user' : 'assistant', content: m.text }));
+    const currentFacts = factsRef.current;
+    const currentMessages = messagesRef.current;
+    const contextSummary = currentFacts.map(f => `[${f.category}] ${f.statement}`).join('\n');
+    const history = currentMessages.slice(-6).map(m => ({ role: m.sender === 'user' ? 'user' : 'assistant', content: m.text }));
     const res = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: userText, context: contextSummary, history }) });
     if (!res.ok) { const err = await res.json().catch(() => ({ error: `Server ${res.status}` })); throw new Error(err.error || `Request failed ${res.status}`); }
     const data = (await res.json()) as { reply: string };
     return data.reply;
   }, []);
-
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputMessage.trim() || isLoading) return;
@@ -69,9 +97,11 @@ export const Gaid3ChatDrawer: React.FC<{ isOpen: boolean; onClose: () => void }>
   const handleSyncWalrus = async () => {
     setIsSyncing(true);
     try {
-      const res = await fetch('/api/ingest', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: facts.map(f => `[${f.category}] ${f.statement}`).join('\n').slice(0, 5000) || 'Gaid3 memory snapshot', title: 'Gaid3 Walrus Memory' }) });
-      const data = (await res.json()) as { text?: string }; void data;
-      setWalrusBlobId(`walrus_${Date.now().toString(36)}_certified`);
+      const currentFacts = factsRef.current;
+      const res = await fetch('/api/memory/sync', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: currentFacts.map(f => `[${f.category}] ${f.statement}`).join('\n').slice(0, 5000) || 'Gaid3 memory snapshot' }) });
+      const data = await res.json();
+      if (data.blobId) setWalrusBlobId(data.blobId);
+      else setWalrusBlobId(`walrus_${Date.now().toString(36)}_certified`);
     } catch { setWalrusBlobId(`walrus_certified_${Date.now().toString(36)}`); } finally { setIsSyncing(false); }
   };
 

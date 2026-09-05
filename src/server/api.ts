@@ -11,10 +11,10 @@ import safetyHandler from '../../api/safety.js';
 import ingestHandler from '../../api/ingest.js';
 import zkloginHandler from '../../api/auth/zklogin.js';
 import syncHandler from '../../api/memory/sync.js';
+import memoryHandler from '../../api/memory.js';
 import flashcardsHandler from '../../api/generate/flashcards.js';
 import mindmapHandler from '../../api/generate/mindmap.js';
 import fromMemoryHandler from '../../api/generate/from-memory.js';
-
 // Gaid3Agent kept for the in-memory diagnostics endpoint (used by CLI `/memory`)
 import { Gaid3Agent } from '../agent/core.js';
 
@@ -73,14 +73,10 @@ mount('post', '/api/safety', safetyHandler);
 mount('post', '/api/ingest', ingestHandler);
 mount('post', '/api/auth/zklogin', zkloginHandler);
 mount('post', '/api/memory/sync', syncHandler);
+mount('get', '/api/memory', memoryHandler);
 mount('post', '/api/generate/flashcards', flashcardsHandler);
 mount('post', '/api/generate/mindmap', mindmapHandler);
 mount('post', '/api/generate/from-memory', fromMemoryHandler);
-
-// In-memory memory profile (used by CLI `/memory` command; not a Vercel handler)
-app.get('/api/memory', (_req: Request, res: Response) => {
-  res.json(agent.getMemory().getProfile());
-});
 
 // Catch-all error handler for Express
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {

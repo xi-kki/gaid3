@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Completing zkLogin...</title>
+  <style>
+    body { font-family: system-ui, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #0a0a0a; color: #fff; }
+    .spinner { width: 32px; height: 32px; border: 3px solid #333; border-top-color: #EC612C; border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div>
+    <div class="spinner" style="margin: 0 auto 16px;"></div>
+    <div>Completing zkLogin...</div>
+  </div>
+  <script>
+    (function() {
+      const hash = window.location.hash;
+      const params = new URLSearchParams(hash.slice(1));
+      const jwt = params.get('id_token');
+      const error = params.get('error');
+      
+      // Get ephemeral data from sessionStorage (shared with opener)
+      let ephemeralData = {};
+      try {
+        ephemeralData = JSON.parse(sessionStorage.getItem('gaid3_ephemeral') || '{}');
+      } catch {}
+      
+      if (window.opener && !window.opener.closed) {
+        if (error) {
+          window.opener.postMessage({ type: 'GAID3_ZKLOGIN_ERROR', error: 'Google OAuth error: ' + error }, window.location.origin);
+        } else if (jwt) {
+          window.opener.postMessage({
+            type: 'GAID3_ZKLOGIN_SUCCESS',
+            jwt,
+            ephemeralPrivateKey: ephemeralData.ephemeralPrivateKey,
+            randomness: ephemeralData.randomness,
+            maxEpoch: ephemeralData.maxEpoch,
+            nonce: ephemeralData.nonce,
+          }, window.location.origin);
+        } else {
+          window.opener.postMessage({ type: 'GAID3_ZKLOGIN_ERROR', error: 'No ID token received' }, window.location.origin);
+        }
+      }
+      // Close popup after short delay
+      setTimeout(() => window.close(), 500);
+    })();
+  </script>
+</body>
+</html>

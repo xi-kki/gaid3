@@ -14,11 +14,19 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
   const [isMobile, setIsMobile] = useState(false);
   const [showZkLogin, setShowZkLogin] = useState(false);
 
+  // Listen for zkLogin completion and auto-open chat drawer
+  useEffect(() => {
+    const handleZkLoginReady = (event: CustomEvent<{ address: string }>) => {
+      setShowZkLogin(false);
+      setTimeout(() => onOpenChat?.(), 300);
+    };
+    window.addEventListener('gaid3:zklogin:ready', handleZkLoginReady as EventListener);
+    return () => window.removeEventListener('gaid3:zklogin:ready', handleZkLoginReady as EventListener);
+  }, [onOpenChat]);
+
   const handleStartOnboarding = () => {
     setShowZkLogin(true);
-    setTimeout(() => onOpenChat?.(), 500);
   };
-
   useEffect(() => {
     const handleScrollAndResize = () => {
       if (!sectionRef.current) return;
@@ -56,7 +64,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
       ref={sectionRef}
       className="relative w-full overflow-hidden"
       style={{
-        height: '120vh',
+        height: '300vh',
         backgroundColor: '#EC612C'
       }}
     >
