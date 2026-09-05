@@ -79,6 +79,7 @@ export function useZkLogin() {
     }
   }, []);
 
+
   const handleJwtCallback = useCallback(async (jwt: string, ephemeralPrivateKey: string, randomness: string, maxEpoch: number, nonce: string) => {
     try {
       setState({ status: 'loading' });
@@ -119,6 +120,21 @@ export function useZkLogin() {
       sessionStorage.removeItem('gaid3_zklogin_pending');
     }
   }, []);
+
+  // Listen for postMessage from zklogin-callback.html popup
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+      if (event.data.type === 'GAID3_ZKLOGIN_SUCCESS') {
+        const { jwt, ephemeralPrivateKey, randomness, maxEpoch, nonce } = event.data;
+        handleJwtCallback(jwt, ephemeralPrivateKey, randomness, maxEpoch, nonce);
+      } else if (event.data.type === 'GAID3_ZKLOGIN_ERROR') {
+        setState({ status: 'error', error: event.data.error });
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [handleJwtCallback]);
 
   const login = useCallback(async () => {
     if (!GOOGLE_CLIENT_ID) {

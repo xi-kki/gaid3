@@ -1,17 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ZkLoginButton } from './ZkLoginButton';
-
-const LEFT_WORDS = ['patient', 'memory', 'walrus', 'safety'];
-const RIGHT_WORDS = ['guided', 'secure', 'sovereign', 'empathy'];
 
 interface HeroProps {
   onOpenChat?: () => void;
 }
 
 export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
-  const sectionRef = useRef<HTMLElement>(null);
-  const [progress, setProgress] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
   const [showZkLogin, setShowZkLogin] = useState(false);
 
   // Listen for zkLogin completion and auto-open chat drawer
@@ -27,189 +21,89 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
   const handleStartOnboarding = () => {
     setShowZkLogin(true);
   };
-  useEffect(() => {
-    const handleScrollAndResize = () => {
-      if (!sectionRef.current) return;
-      const rect = sectionRef.current.getBoundingClientRect();
-      const sectionHeight = sectionRef.current.offsetHeight;
-      const windowHeight = window.innerHeight;
-
-      const totalScrollable = sectionHeight - windowHeight;
-      const rawProgress = totalScrollable > 0 ? -rect.top / totalScrollable : 0;
-      const clamped = Math.max(0, Math.min(1, rawProgress));
-
-      setProgress(clamped);
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    handleScrollAndResize();
-    window.addEventListener('scroll', handleScrollAndResize, { passive: true });
-    window.addEventListener('resize', handleScrollAndResize);
-
-    return () => {
-      window.removeEventListener('scroll', handleScrollAndResize);
-      window.removeEventListener('resize', handleScrollAndResize);
-    };
-  }, []);
-
-  const scaleFactor = isMobile ? 0.5 : 1;
-  const opacity = 1;
-
-  const layer0Offset = isMobile ? '18px' : '36px';
-  const layer1Offset = isMobile ? '12px' : '24px';
-  const layer2Offset = isMobile ? '6px' : '12px';
 
   return (
-    <section
-      ref={sectionRef}
-      className="relative w-full overflow-hidden"
-      style={{
-        height: '300vh',
-        backgroundColor: '#EC612C'
-      }}
-    >
+    <section className="relative w-full h-screen overflow-hidden flex flex-col" style={{ backgroundColor: '#EC612C' }}>
       {/* Top Floating Badge */}
-      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 text-xs text-white/90 shadow-lg">
-        <span className="w-2 h-2 rounded-full bg-[#90EE90] animate-pulse"></span>
+      <div className="absolute top-4 md:top-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-black/40 backdrop-blur-md px-3 md:px-4 py-1 rounded-full border border-white/20 text-xs md:text-sm text-white/90 shadow-lg">
+        <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-[#90EE90] animate-pulse"></span>
         <span className="font-medium tracking-wide">Walrus Memory Active</span>
         <span className="text-white/40">|</span>
         <span className="text-white/70">Web3 Onboarding Guide</span>
       </div>
 
-      {/* Layer B: Sticky text overlay (z-index 5) */}
-      <div className="sticky top-0 h-screen w-full z-[5] pointer-events-none">
+      {/* Main Content - centered vertically */}
+      <div className="flex-1 flex flex-col items-center justify-center px-4 md:px-8 relative z-10">
         {/* "GAID3" stacked title */}
-        <div className="absolute inset-0 flex items-start justify-center pt-[2vh] md:pt-[3vh]">
-          <div className="relative leading-[0.85] tracking-tight select-none">
-            <h1
-              className="absolute inset-0 font-bamboly uppercase select-none pointer-events-none"
-              style={{
-                color: '#89CFF0',
-                fontSize: 'clamp(7.5rem, 30vw, 28rem)',
-                transform: `translateY(${layer0Offset})`
-              }}
-            >
-              GAID3
-            </h1>
-
-            <h1
-              className="absolute inset-0 font-bamboly uppercase select-none pointer-events-none"
-              style={{
-                color: '#EC612C',
-                fontSize: 'clamp(7.5rem, 30vw, 28rem)',
-                transform: `translateY(${layer1Offset})`
-              }}
-            >
-              GAID3
-            </h1>
-
-            <h1
-              className="absolute inset-0 font-bamboly uppercase select-none pointer-events-none"
-              style={{
-                color: '#90EE90',
-                fontSize: 'clamp(7.5rem, 30vw, 28rem)',
-                transform: `translateY(${layer2Offset})`
-              }}
-            >
-              GAID3
-            </h1>
-
-            <h1
-              className="relative font-bamboly uppercase select-none pointer-events-none"
-              style={{
-                color: '#FFFFFF',
-                fontSize: 'clamp(7.5rem, 30vw, 28rem)',
-                transform: 'translateY(0)'
-              }}
-            >
-              GAID3
-            </h1>
-          </div>
-        </div>
+        <div className="relative leading-[0.85] tracking-tight select-none mb-8 md:mb-12">
+          <h1 className="absolute inset-0 font-bamboly uppercase select-none pointer-events-none" style={{ color: '#89CFF0', fontSize: 'clamp(5rem, 18vw, 16rem)', transform: 'translateY(24px)' }}>
+            GAID3
+          </h1>
+          <h1 className="absolute inset-0 font-bamboly uppercase select-none pointer-events-none" style={{ color: '#EC612C', fontSize: 'clamp(5rem, 18vw, 16rem)', transform: 'translateY(16px)' }}>
+            GAID3
+          </h1>
+          <h1 className="absolute inset-0 font-bamboly uppercase select-none pointer-events-none" style={{ color: '#90EE90', fontSize: 'clamp(5rem, 18vw, 16rem)', transform: 'translateY(8px)' }}>
+            GAID3
+          </h1>
+          <h1 className="relative font-bamboly uppercase select-none pointer-events-none" style={{ color: '#FFFFFF', fontSize: 'clamp(5rem, 18vw, 16rem)' }}>
+            GAID3
+          </h1>
         </div>
 
-        {/* Side word columns - smaller, with scroll interaction */}
-        <div
-          className="absolute inset-0 flex items-end justify-between px-[3vw] md:px-[6vw] pointer-events-none"
-          style={{ bottom: '8vh' }}
-        >
-          {/* Left Column */}
+        {/* Side word columns - static, no scroll animation */}
+        <div className="flex items-center justify-between w-full max-w-5xl px-4 md:px-8 mb-10 md:mb-16">
           <div className="flex flex-col gap-1 md:gap-2">
-            {LEFT_WORDS.map((word, i) => {
-              const leftOffset = -(120 + i * 50) * scaleFactor * (1 - progress);
-              return (
-                <span
-                  key={word}
-                  className="font-poppins uppercase text-white/70 select-none"
-                  style={{
-                    fontWeight: 500,
-                    fontSize: 'clamp(1.2rem, 5vw, 3rem)',
-                    lineHeight: 1.1,
-                    opacity,
-                    transform: `translateX(${leftOffset}px)`,
-                    transition: 'transform 0.05s linear'
-                  }}
-                >
-                  {word}
-                </span>
-              );
-            })}
+            {['patient', 'memory', 'walrus', 'safety'].map((word, i) => (
+              <span key={word} className="font-poppins uppercase text-white/70 select-none" style={{ fontWeight: 500, fontSize: 'clamp(1rem, 3vw, 2rem)', lineHeight: 1.1 }}>
+                {word}
+              </span>
+            ))}
           </div>
-
-          {/* Right Column */}
           <div className="flex flex-col gap-1 md:gap-2 items-end">
-            {RIGHT_WORDS.map((word, i) => {
-              const rightOffset = +(120 + i * 50) * scaleFactor * (1 - progress);
-              return (
-                <span
-                  key={word}
-                  className="font-poppins uppercase text-white/70 text-right select-none"
-                  style={{
-                    fontWeight: 500,
-                    fontSize: 'clamp(1.2rem, 5vw, 3rem)',
-                    lineHeight: 1.1,
-                    opacity,
-                    transform: `translateX(${rightOffset}px)`,
-                    transition: 'transform 0.05s linear'
-                  }}
-                >
-                  {word}
-                </span>
-              );
-            })}
+            {['guided', 'secure', 'sovereign', 'empathy'].map((word, i) => (
+              <span key={word} className="font-poppins uppercase text-white/70 text-right select-none" style={{ fontWeight: 500, fontSize: 'clamp(1rem, 3vw, 2rem)', lineHeight: 1.1 }}>
+                {word}
+              </span>
+            ))}
           </div>
         </div>
 
-      {/* Layer A: Character (z-index 10) */}
-      <div className="absolute inset-0 z-10 pointer-events-none">
-        <img
-          src="/gaid3-new.png"
-          alt="Gaid3 Web3 Onboarding AI Agent"
-          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-auto max-w-none block"
-          style={{
-            height: '115%',
-            maxHeight: '115%',
-            minHeight: '80%'
-          }}
-        />
-      </div>
+        {/* Character Image */}
+        <div className="flex items-end justify-center w-full mb-8 md:mb-12 flex-1 min-h-0">
+          <img
+            src="/gaid3-new.png"
+            alt="Gaid3 Web3 Onboarding AI Agent"
+            className="w-full max-w-[85vw] md:max-w-[65vw] lg:max-w-[55vw] h-auto max-h-[50vh] md:max-h-[55vh] object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.5)]"
+          />
+        </div>
 
-      {/* Bottom Actions (z-index 20) — Onboarding Flow */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 pointer-events-auto flex flex-col items-center gap-3">
-        {!showZkLogin ? (
-          <button
-            onClick={handleStartOnboarding}
-            className="group flex items-center gap-3 bg-white text-[#EC612C] font-semibold px-6 py-3.5 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200"
-          >
-            <span className="w-2.5 h-2.5 rounded-full bg-[#EC612C] group-hover:animate-ping"></span>
-            <span className="font-poppins tracking-wide text-sm md:text-base">Start Safe Onboarding with Gaid3</span>
-            <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
-          </button>
-        ) : (
-          <ZkLoginButton />
-        )}
+        {/* Descriptive Text */}
+        <div className="text-center px-4 md:px-8 mb-6 md:mb-10">
+          <p className="font-poppins text-white/80 text-sm md:text-base lg:text-lg max-w-3xl leading-relaxed tracking-wide mx-auto">
+            Your AI guide to safe Web3 onboarding — no seed phrases, no friction, just Google login and you're on Sui.
+          </p>
+          <p className="font-poppins text-[#90EE90]/90 text-xs md:text-sm mt-2 max-w-2xl leading-relaxed mx-auto">
+            Powered by Walrus decentralized memory & zkLogin. Your keys, your data, your sovereignty.
+          </p>
+        </div>
+
+        {/* Bottom Actions — Onboarding Flow */}
+        <div className="pointer-events-auto flex flex-col items-center gap-3 w-full max-w-md mx-auto">
+          {!showZkLogin ? (
+            <button
+              onClick={handleStartOnboarding}
+              className="group w-full flex items-center justify-center gap-3 bg-white text-[#EC612C] font-semibold px-6 py-3.5 rounded-full shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+            >
+              <span className="w-2.5 h-2.5 rounded-full bg-[#EC612C] group-hover:animate-ping"></span>
+              <span className="font-poppins tracking-wide text-sm md:text-base">Start Safe Onboarding with Gaid3</span>
+              <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </button>
+          ) : (
+            <ZkLoginButton />
+          )}
+        </div>
       </div>
     </section>
   );
