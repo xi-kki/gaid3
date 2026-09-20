@@ -186,6 +186,10 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
           onError={() => setImageSrc(FALLBACK_IMAGE_URL)}
           alt="Beyond Hero Character"
           onClick={() => onOpenChat?.()}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            onOpenChat?.();
+          }}
           title="Click character or press Space to interact with Gaid3 AI"
           className="absolute bottom-0 left-1/2 -translate-x-1/2 w-auto max-w-none block pointer-events-auto cursor-pointer select-none transition-transform hover:scale-[1.01] active:scale-[0.99] duration-200"
           style={{

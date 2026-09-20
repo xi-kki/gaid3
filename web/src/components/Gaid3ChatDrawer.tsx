@@ -239,6 +239,7 @@ export const Gaid3ChatDrawer: React.FC<DrawerProps> = ({
           </div>
 
           <div className="flex items-center gap-3">
+            <ZkLoginButton />
             <button
               onClick={onClose}
               className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/70 hover:text-white transition-all text-xs"
