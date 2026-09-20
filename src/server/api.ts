@@ -17,6 +17,7 @@ import memoryHandler from '../../api/memory.js';
 import flashcardsHandler from '../../api/generate/flashcards.js';
 import mindmapHandler from '../../api/generate/mindmap.js';
 import fromMemoryHandler from '../../api/generate/from-memory.js';
+import marketHandler from '../../api/market.js';
 // Gaid3Agent kept for the in-memory diagnostics endpoint (used by CLI `/memory`)
 import { Gaid3Agent } from '../agent/core.js';
 
@@ -79,6 +80,7 @@ mount('get', '/api/memory', memoryHandler);
 mount('post', '/api/generate/flashcards', flashcardsHandler);
 mount('post', '/api/generate/mindmap', mindmapHandler);
 mount('post', '/api/generate/from-memory', fromMemoryHandler);
+mount('get', '/api/market', marketHandler);
 
 // Catch-all error handler for Express
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
