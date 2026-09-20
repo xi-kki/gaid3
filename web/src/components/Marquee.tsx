@@ -1,6 +1,6 @@
 import React from 'react';
 
-const MARQUEE_TEXT = 'WALRUS MEMORY · CALM ONBOARDING · ZERO FEAR · DECENTRALIZED · SOVEREIGN AI · STEP BY STEP · WEB3 MADE SAFE · GAID3 · ';
+const MARQUEE_TEXT = 'SPARK · RENDER · IGNITE · UNFOLD · GENESIS · EVOLVE · PURPOSE · BEYOND · ';
 
 export const Marquee: React.FC = () => {
   return (
@@ -10,7 +10,7 @@ export const Marquee: React.FC = () => {
         {[0, 1, 2, 3].map((index) => (
           <span
             key={index}
-            className="shrink-0 font-bamboly uppercase font-bold"
+            className="shrink-0 font-bamboly uppercase select-none"
             style={{
               color: '#EC612C',
               fontSize: 'clamp(2.5rem, 6vw, 5rem)',
@@ -25,3 +25,5 @@ export const Marquee: React.FC = () => {
     </div>
   );
 };
+
+export default Marquee;

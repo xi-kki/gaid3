@@ -1,139 +1,202 @@
-import React, { useEffect, useState } from 'react';
-import { ZkLoginButton } from './ZkLoginButton';
+import React, { useEffect, useRef, useState } from 'react';
+
+const LEFT_WORDS = ['spark', 'imagine', 'evolve', 'render'];
+const RIGHT_WORDS = ['blaze', 'genesis', 'purpose', 'ignite'];
+
+const HIGGS_IMAGE_URL =
+  'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260801_104316_80b428ea-dc99-4399-afb3-8ccb7b34b2d0.png&w=1280&q=85';
+const FALLBACK_IMAGE_URL =
+  'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260801_104316_80b428ea-dc99-4399-afb3-8ccb7b34b2d0.png';
 
 interface HeroProps {
-  onOpenChat?: (tab?: 'chat' | 'studio' | 'safety') => void;
+  onOpenChat?: () => void;
 }
 
 export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
-  const [showZkLogin, setShowZkLogin] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+  const [progress, setProgress] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+  const [imageSrc, setImageSrc] = useState(HIGGS_IMAGE_URL);
 
-  // Listen for zkLogin completion and auto-open chat drawer
   useEffect(() => {
-    const handleZkLoginReady = () => {
-      setShowZkLogin(false);
-      setTimeout(() => onOpenChat?.('chat'), 300);
+    const handleScrollAndResize = () => {
+      if (!sectionRef.current) return;
+      const rect = sectionRef.current.getBoundingClientRect();
+      const sectionHeight = sectionRef.current.offsetHeight;
+      const windowHeight = window.innerHeight;
+
+      const totalScrollable = sectionHeight - windowHeight;
+      const rawProgress = totalScrollable > 0 ? -rect.top / totalScrollable : 0;
+      const clamped = Math.max(0, Math.min(1, rawProgress));
+
+      setProgress(clamped);
+      setIsMobile(window.innerWidth < 768);
     };
-    window.addEventListener('gaid3:zklogin:ready', handleZkLoginReady as EventListener);
-    return () => window.removeEventListener('gaid3:zklogin:ready', handleZkLoginReady as EventListener);
+
+    handleScrollAndResize();
+    window.addEventListener('scroll', handleScrollAndResize, { passive: true });
+    window.addEventListener('resize', handleScrollAndResize);
+
+    // Keyboard trigger: Press 'Space' or 'G' to toggle Gaid3 assistant
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === 'g' || e.key === 'G' || e.key === ' ') {
+        if (e.key === ' ') e.preventDefault();
+        onOpenChat?.();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('scroll', handleScrollAndResize);
+      window.removeEventListener('resize', handleScrollAndResize);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, [onOpenChat]);
 
-  const handleStartOnboarding = () => {
-    setShowZkLogin(true);
-  };
+  const scaleFactor = isMobile ? 0.5 : 1;
+  const opacity = 0.35 + progress * 0.65;
+
+  // Title layer offsets
+  const layer0Offset = isMobile ? '18px' : '36px';
+  const layer1Offset = isMobile ? '12px' : '24px';
+  const layer2Offset = isMobile ? '6px' : '12px';
 
   return (
-    <section className="relative w-full min-h-screen overflow-hidden flex flex-col pt-16 pb-8" style={{ backgroundColor: '#EC612C' }}>
-      {/* Top Floating Badge */}
-      <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-black/40 backdrop-blur-md px-3 md:px-4 py-1 rounded-full border border-white/20 text-xs md:text-sm text-white/90 shadow-lg">
-        <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-[#90EE90] animate-pulse"></span>
-        <span className="font-medium tracking-wide">Walrus Memory Active</span>
-        <span className="text-white/40">|</span>
-        <span className="text-white/70">Web3 Onboarding Sovereign Guide</span>
-      </div>
+    <section
+      ref={sectionRef}
+      className="relative w-full overflow-hidden"
+      style={{
+        height: '120vh',
+        backgroundColor: '#EC612C'
+      }}
+    >
+      {/* Layer B: Sticky text overlay (z-index 5) */}
+      <div className="sticky top-0 h-screen w-full z-[5] pointer-events-none">
+        {/* "BEYOND" stacked title */}
+        <div className="absolute inset-0 flex items-start justify-center pt-[2vh] md:pt-[3vh]">
+          <div className="relative leading-[0.85] tracking-tight select-none">
+            {/* Layer 0 (back) - #89CFF0 */}
+            <h1
+              className="absolute inset-0 font-bamboly uppercase select-none pointer-events-none"
+              style={{
+                color: '#89CFF0',
+                fontSize: 'clamp(7.5rem, 30vw, 28rem)',
+                transform: `translateY(${layer0Offset})`
+              }}
+            >
+              BEYOND
+            </h1>
 
-      {/* Main Content - centered vertically */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 md:px-8 relative z-10 my-auto">
-        {/* "GAID3" stacked title */}
-        <div className="relative leading-[0.85] tracking-tight select-none mb-6 md:mb-10">
-          <h1 className="absolute inset-0 font-bamboly uppercase select-none pointer-events-none" style={{ color: '#89CFF0', fontSize: 'clamp(5rem, 18vw, 16rem)', transform: 'translateY(24px)' }}>
-            GAID3
-          </h1>
-          <h1 className="absolute inset-0 font-bamboly uppercase select-none pointer-events-none" style={{ color: '#EC612C', fontSize: 'clamp(5rem, 18vw, 16rem)', transform: 'translateY(16px)' }}>
-            GAID3
-          </h1>
-          <h1 className="absolute inset-0 font-bamboly uppercase select-none pointer-events-none" style={{ color: '#90EE90', fontSize: 'clamp(5rem, 18vw, 16rem)', transform: 'translateY(8px)' }}>
-            GAID3
-          </h1>
-          <h1 className="relative font-bamboly uppercase select-none pointer-events-none" style={{ color: '#FFFFFF', fontSize: 'clamp(5rem, 18vw, 16rem)' }}>
-            GAID3
-          </h1>
+            {/* Layer 1 - #EC612C */}
+            <h1
+              className="absolute inset-0 font-bamboly uppercase select-none pointer-events-none"
+              style={{
+                color: '#EC612C',
+                fontSize: 'clamp(7.5rem, 30vw, 28rem)',
+                transform: `translateY(${layer1Offset})`
+              }}
+            >
+              BEYOND
+            </h1>
+
+            {/* Layer 2 - #90EE90 */}
+            <h1
+              className="absolute inset-0 font-bamboly uppercase select-none pointer-events-none"
+              style={{
+                color: '#90EE90',
+                fontSize: 'clamp(7.5rem, 30vw, 28rem)',
+                transform: `translateY(${layer2Offset})`
+              }}
+            >
+              BEYOND
+            </h1>
+
+            {/* Layer 3 (front) - #FFFFFF */}
+            <h1
+              className="relative font-bamboly uppercase select-none pointer-events-none"
+              style={{
+                color: '#FFFFFF',
+                fontSize: 'clamp(7.5rem, 30vw, 28rem)',
+                transform: 'translateY(0)'
+              }}
+            >
+              BEYOND
+            </h1>
+          </div>
         </div>
 
         {/* Side word columns */}
-        <div className="flex items-center justify-between w-full max-w-5xl px-4 md:px-8 mb-6 md:mb-10">
+        <div
+          className="absolute inset-0 flex items-end justify-between px-[3vw] md:px-[6vw] pointer-events-none"
+          style={{ bottom: '-8vh' }}
+        >
+          {/* Left Column */}
           <div className="flex flex-col gap-1 md:gap-2">
-            {['patient', 'memory', 'walrus', 'safety'].map((word) => (
-              <span key={word} className="font-poppins uppercase text-white/70 select-none" style={{ fontWeight: 500, fontSize: 'clamp(1rem, 3vw, 2rem)', lineHeight: 1.1 }}>
-                {word}
-              </span>
-            ))}
+            {LEFT_WORDS.map((word, i) => {
+              const leftOffset = -(60 + i * 40) * scaleFactor * (1 - progress);
+              return (
+                <span
+                  key={word}
+                  className="font-poppins uppercase text-white/80 select-none"
+                  style={{
+                    fontWeight: 500,
+                    fontSize: 'clamp(1.6rem, 7vw, 9rem)',
+                    lineHeight: 1.1,
+                    opacity,
+                    transform: `translateX(${leftOffset}px)`,
+                    transition: 'transform 0.05s linear'
+                  }}
+                >
+                  {word}
+                </span>
+              );
+            })}
           </div>
+
+          {/* Right Column */}
           <div className="flex flex-col gap-1 md:gap-2 items-end">
-            {['guided', 'secure', 'sovereign', 'empathy'].map((word) => (
-              <span key={word} className="font-poppins uppercase text-white/70 text-right select-none" style={{ fontWeight: 500, fontSize: 'clamp(1rem, 3vw, 2rem)', lineHeight: 1.1 }}>
-                {word}
-              </span>
-            ))}
+            {RIGHT_WORDS.map((word, i) => {
+              const rightOffset = +(60 + i * 40) * scaleFactor * (1 - progress);
+              return (
+                <span
+                  key={word}
+                  className="font-poppins uppercase text-white/80 text-right select-none"
+                  style={{
+                    fontWeight: 500,
+                    fontSize: 'clamp(1.6rem, 7vw, 9rem)',
+                    lineHeight: 1.1,
+                    opacity,
+                    transform: `translateX(${rightOffset}px)`,
+                    transition: 'transform 0.05s linear'
+                  }}
+                >
+                  {word}
+                </span>
+              );
+            })}
           </div>
         </div>
+      </div>
 
-        {/* Character Image */}
-        <div className="flex items-end justify-center w-full mb-6 md:mb-8 flex-1 min-h-0">
-          <img
-            src="/gaid3-new.png"
-            alt="Gaid3 Web3 Onboarding AI Agent"
-            className="w-full max-w-[85vw] md:max-w-[60vw] lg:max-w-[48vw] h-auto max-h-[42vh] md:max-h-[48vh] object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.5)]"
-          />
-        </div>
-
-        {/* Descriptive Text */}
-        <div className="text-center px-4 md:px-8 mb-6">
-          <p className="font-poppins text-white/90 text-sm md:text-base lg:text-lg max-w-3xl leading-relaxed tracking-wide mx-auto font-medium">
-            Your AI companion to safe Web3 onboarding — no seed phrases, zero fear, sovereign zkLogin & Walrus memory on Sui.
-          </p>
-          <p className="font-poppins text-[#90EE90]/90 text-xs md:text-sm mt-1 max-w-2xl leading-relaxed mx-auto">
-            Powered by Walrus decentralized memory & zkLogin. Your keys, your data, your sovereignty.
-          </p>
-        </div>
-
-        {/* Bottom Actions — Onboarding Flow */}
-        <div className="pointer-events-auto flex flex-col items-center gap-3 w-full max-w-md mx-auto">
-          {!showZkLogin ? (
-            <div className="flex flex-col items-center gap-2.5 w-full">
-              <button
-                onClick={handleStartOnboarding}
-                className="group w-full flex items-center justify-center gap-3 bg-white text-[#EC612C] font-semibold px-6 py-3.5 rounded-full shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
-              >
-                <span className="w-2.5 h-2.5 rounded-full bg-[#EC612C] group-hover:animate-ping"></span>
-                <span className="font-poppins tracking-wide text-sm md:text-base">Start Safe Onboarding with Gaid3</span>
-                <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-              </button>
-              
-              <button
-                onClick={() => onOpenChat?.('chat')}
-                className="text-xs text-white/70 hover:text-white underline"
-              >
-                Or open AI guide chat directly
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-2 text-center">
-              <ZkLoginButton />
-              <button
-                onClick={() => setShowZkLogin(false)}
-                className="text-xs text-white/50 hover:text-white underline mt-1"
-              >
-                ← Back
-              </button>
-            </div>
-          )}
-
-          {/* Quick Suite Jump Links */}
-          <div className="flex items-center gap-2 text-[11px] text-white/80 bg-black/30 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 mt-1">
-            <span>Explore:</span>
-            <button onClick={() => onOpenChat?.('studio')} className="hover:text-white underline">
-              Notebook Studio
-            </button>
-            <span>·</span>
-            <button onClick={() => onOpenChat?.('safety')} className="hover:text-white underline">
-              Safety Sandbox
-            </button>
-          </div>
-        </div>
+      {/* Layer A: Character (z-index 10) */}
+      <div className="absolute inset-0 z-10 pointer-events-none">
+        <img
+          src={imageSrc}
+          onError={() => setImageSrc(FALLBACK_IMAGE_URL)}
+          alt="Beyond Hero Character"
+          onClick={() => onOpenChat?.()}
+          title="Click character or press Space to interact with Gaid3 AI"
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-auto max-w-none block pointer-events-auto cursor-pointer select-none transition-transform hover:scale-[1.01] active:scale-[0.99] duration-200"
+          style={{
+            height: '115%',
+            maxHeight: '115%',
+            minHeight: '80%'
+          }}
+        />
       </div>
     </section>
   );
 };
+
+export default Hero;
