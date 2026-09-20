@@ -3,9 +3,7 @@ type VercelRequest = { method?: string; body?: unknown; headers: Record<string,s
 type VercelResponse = { status: (n:number)=>VercelResponse; json: (o:unknown)=>VercelResponse; setHeader:(k:string,v:string)=>void; end:()=>void; };
 import { z } from 'zod';
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
-const OPEN_NOTEBOOK_URL = process.env.OPEN_NOTEBOOK_URL?.replace(/\/$/, '');
-const OPEN_NOTEBOOK_PASSWORD = process.env.OPEN_NOTEBOOK_PASSWORD;
+// Dynamic API keys read inside handler to avoid ESM hoisting
 
 const BodySchema = z.object({
   history: z.array(z.object({ role: z.string(), content: z.string() })).max(50).default([]),
@@ -38,6 +36,8 @@ function buildSourceText(data: z.infer<typeof BodySchema>): string {
 }
 
 async function tryOpenNotebook(sourceText: string, type: string, question?: string): Promise<unknown | null> {
+  const OPEN_NOTEBOOK_URL = process.env.OPEN_NOTEBOOK_URL?.replace(/\/$/, '');
+  const OPEN_NOTEBOOK_PASSWORD = process.env.OPEN_NOTEBOOK_PASSWORD;
   if (!OPEN_NOTEBOOK_URL || !OPEN_NOTEBOOK_PASSWORD) return null;
   try {
     const headers = { Authorization: `Bearer ${OPEN_NOTEBOOK_PASSWORD}`, 'Content-Type': 'application/json' };
@@ -267,6 +267,11 @@ function generateOfflineFallback(data: z.infer<typeof BodySchema>, sourceText: s
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const GROQ_API_KEY = process.env.GROQ_API_KEY;
+  const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+  const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY;
+  const OPEN_NOTEBOOK_URL = process.env.OPEN_NOTEBOOK_URL?.replace(/\/$/, '');
+  const OPEN_NOTEBOOK_PASSWORD = process.env.OPEN_NOTEBOOK_PASSWORD;
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   const parsed = BodySchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
@@ -304,43 +309,85 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const systemPrompt = prompts[data.type] || prompts.summary;
 
-  try {
-    const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${GROQ_API_KEY}` },
-      body: JSON.stringify({
-        model: 'groq/compound-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Title: ${data.title || 'Gaid3 Learning'}\n\nSource:\n${sourceText.slice(0,12000)}${data.question ? `\n\nQuestion: ${data.question}` : ''}` },
-        ],
-        temperature: data.type === 'mindmap' ? 0.3 : 0.4,
-        response_format: data.type !== 'ask' && data.type !== 'search' && data.type !== 'simplify' ? { type: 'json_object' } : undefined,
-      }),
-    });
-    if (!groqRes.ok) {
-      const t = await groqRes.text();
-      return res.status(502).json({ error: `Groq error ${groqRes.status}`, detail: t.slice(0,400) });
-    }
-    const j = (await groqRes.json()) as { choices?: Array<{ message?: { content?: string } }> };
-    const raw = j.choices?.[0]?.message?.content ?? '{}';
-    // Try parse JSON, fallback to raw for ask/search
-    if (data.type === 'ask' || data.type === 'search' || data.type === 'simplify') {
-      // ask/search may be plain text — return as is
-      try { return res.json(JSON.parse(raw)); } catch { return res.json({ answer: raw, source: 'groq' }); }
-    }
-    let jsonStr = raw.trim().replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
-    const fb = jsonStr.indexOf('{'); const lb = jsonStr.lastIndexOf('}');
-    if (fb >=0 && lb > fb) jsonStr = jsonStr.slice(fb, lb+1);
-    jsonStr = jsonStr.replace(/,\s*([}\]])/g,'$1');
+  let raw = '';
+  let sourceProvider = 'groq';
+
+  // Attempt A: Groq
+  if (GROQ_API_KEY) {
     try {
-      const parsedJson = JSON.parse(jsonStr);
-      return res.json({ source: 'groq', data: parsedJson, raw: undefined });
-    } catch {
-      return res.status(502).json({ error: 'Model returned invalid JSON', raw: raw.slice(0,1000) });
+      const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${GROQ_API_KEY}` },
+        body: JSON.stringify({
+          model: 'groq/compound-mini',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: `Title: ${data.title || 'Gaid3 Learning'}\n\nSource:\n${sourceText.slice(0,12000)}${data.question ? `\n\nQuestion: ${data.question}` : ''}` },
+          ],
+          temperature: data.type === 'mindmap' ? 0.3 : 0.4,
+          response_format: data.type !== 'ask' && data.type !== 'search' && data.type !== 'simplify' ? { type: 'json_object' } : undefined,
+        }),
+      });
+      if (groqRes.ok) {
+        const j = (await groqRes.json()) as { choices?: Array<{ message?: { content?: string } }> };
+        raw = j.choices?.[0]?.message?.content ?? '';
+        sourceProvider = 'groq';
+      }
+    } catch (e) {
+      console.warn('Groq studio generation failed, trying OpenRouter...', e);
     }
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : 'Unknown error';
-    return res.status(500).json({ error: msg });
+  }
+
+  // Attempt B: OpenRouter
+  if (!raw && OPENROUTER_API_KEY) {
+    try {
+      const orRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+          'HTTP-Referer': 'https://gaid3.vercel.app',
+          'X-Title': 'Gaid3 Studio',
+        },
+        body: JSON.stringify({
+          model: 'openai/gpt-4o-mini',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: `Title: ${data.title || 'Gaid3 Learning'}\n\nSource:\n${sourceText.slice(0,12000)}${data.question ? `\n\nQuestion: ${data.question}` : ''}` },
+          ],
+          temperature: 0.3,
+          response_format: data.type !== 'ask' && data.type !== 'search' && data.type !== 'simplify' ? { type: 'json_object' } : undefined,
+        }),
+      });
+      if (orRes.ok) {
+        const j = (await orRes.json()) as { choices?: Array<{ message?: { content?: string } }> };
+        raw = j.choices?.[0]?.message?.content ?? '';
+        sourceProvider = 'openrouter';
+      }
+    } catch (e) {
+      console.warn('OpenRouter studio generation failed...', e);
+    }
+  }
+
+  // Attempt C: Graceful offline heuristic fallback if all network AI fails
+  if (!raw) {
+    return res.json(generateOfflineFallback(data, sourceText));
+  }
+
+  // Process response
+  if (data.type === 'ask' || data.type === 'search' || data.type === 'simplify') {
+    try { return res.json(JSON.parse(raw)); } catch { return res.json({ answer: raw, source: sourceProvider }); }
+  }
+
+  let jsonStr = raw.trim().replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
+  const fb = jsonStr.indexOf('{'); const lb = jsonStr.lastIndexOf('}');
+  if (fb >= 0 && lb > fb) jsonStr = jsonStr.slice(fb, lb + 1);
+  jsonStr = jsonStr.replace(/,\s*([}\]])/g, '$1');
+
+  try {
+    const parsedJson = JSON.parse(jsonStr);
+    return res.json({ source: sourceProvider, data: parsedJson, raw: undefined });
+  } catch {
+    return res.json(generateOfflineFallback(data, sourceText));
   }
 }
