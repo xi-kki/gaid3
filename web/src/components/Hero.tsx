@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Shield, Sparkles, MessageSquare, ArrowRight, Lock } from 'lucide-react';
 
 const LEFT_WORDS = ['sovereign', 'walrus', 'memory', 'safety'];
 const RIGHT_WORDS = ['patient', 'zero-fear', 'sui-web3', 'companion'];
@@ -182,12 +183,15 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
       {/* Layer C: Floating Mission & Value Proposition Header (z-index 20) */}
       <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 pointer-events-auto px-4 text-center">
         <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/70 backdrop-blur-md border border-white/20 shadow-2xl">
-          <span className="w-2 h-2 rounded-full bg-[#90EE90] animate-pulse" />
+          <Shield className="w-3.5 h-3.5 text-[#90EE90]" />
           <span className="text-xs font-semibold text-white tracking-wide uppercase font-poppins">
             Gaid3 Sovereign AI
           </span>
           <span className="text-white/40">·</span>
-          <span className="text-[11px] text-white/80 font-mono">Walrus Protocol Memory · Sui Testnet</span>
+          <span className="flex items-center gap-1 text-[11px] text-white/80 font-mono">
+            <Lock className="w-3 h-3 text-[#90EE90]" />
+            Walrus Protocol Memory · Sui Testnet
+          </span>
         </div>
         <p className="text-xs md:text-sm text-white/90 font-medium drop-shadow-md max-w-xl">
           Zero-fear Web3 onboarding guide. Step-by-step wallet safety, smart contract pre-flight checks, and sovereign private memory.
@@ -218,13 +222,14 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
         <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
           <button
             onClick={() => onOpenChat?.()}
-            className="group flex items-center gap-3 px-6 py-3.5 rounded-full bg-black/85 hover:bg-black text-white font-bold text-sm border-2 border-[#EC612C] shadow-[0_8px_30px_rgba(236,97,44,0.5)] hover:scale-105 active:scale-95 transition-all"
+            className="group flex items-center gap-3 px-6 py-3.5 rounded-full bg-black/90 hover:bg-black text-white font-bold text-sm border-2 border-[#EC612C] shadow-[0_8px_30px_rgba(236,97,44,0.55)] hover:scale-105 active:scale-95 transition-all cursor-pointer"
           >
-            <span className="text-base">💬</span>
+            <MessageSquare className="w-4 h-4 text-[#EC612C]" />
             <span>Talk to Gaid3 · Start Safe Guide</span>
-            <span className="px-2 py-0.5 rounded bg-white/10 text-[10px] font-mono text-[#90EE90]">
+            <span className="px-2 py-0.5 rounded bg-white/10 text-[10px] font-mono text-[#90EE90] flex items-center gap-1">
               Space
             </span>
+            <ArrowRight className="w-4 h-4 text-white/80 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
       </div>

@@ -1,6 +1,22 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { NotebookLMStudio } from './studio/NotebookLMStudio';
 import { ZkLoginButton } from './ZkLoginButton';
+import {
+  MessageSquare,
+  BookOpen,
+  ShieldAlert,
+  ShieldCheck,
+  Send,
+  X,
+  Bot,
+  User,
+  Lightbulb,
+  ArrowRight,
+  Database,
+  RefreshCw,
+  Zap,
+  Lock,
+} from 'lucide-react';
 
 export interface Message {
   sender: 'gaid3' | 'user';
@@ -218,10 +234,22 @@ export const Gaid3ChatDrawer: React.FC<DrawerProps> = ({
   };
 
   const QUICK_PROMPTS = [
-    '🛡️ How do I safely set up my first Sui wallet?',
-    '🧠 What is Walrus Protocol decentralized memory?',
-    '⚡ What is zkLogin and why is it safer than seed phrases?',
-    '🔍 Scan a contract or airdrop link for scams',
+    {
+      title: 'How do I safely set up my first Sui wallet?',
+      icon: Zap,
+    },
+    {
+      title: 'What is Walrus Protocol decentralized memory?',
+      icon: Database,
+    },
+    {
+      title: 'What is zkLogin and why is it safer than seed phrases?',
+      icon: Lock,
+    },
+    {
+      title: 'Scan a contract or airdrop link for scams',
+      icon: ShieldAlert,
+    },
   ];
 
   return (
@@ -253,10 +281,10 @@ export const Gaid3ChatDrawer: React.FC<DrawerProps> = ({
             <ZkLoginButton />
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 flex items-center justify-center text-white/80 hover:text-white transition-all text-sm font-semibold"
+              className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 flex items-center justify-center text-white/80 hover:text-white transition-all cursor-pointer"
               aria-label="Close dialog"
             >
-              ✕
+              <X className="w-4 h-4" />
             </button>
           </div>
         </header>
@@ -265,35 +293,35 @@ export const Gaid3ChatDrawer: React.FC<DrawerProps> = ({
         <div className="flex items-center border-b border-white/10 px-4 bg-black/40 text-xs">
           <button
             onClick={() => setTab('chat')}
-            className={`py-2.5 px-4 font-medium border-b-2 transition-all flex items-center gap-1.5 ${
+            className={`py-3 px-4 font-medium border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
               tab === 'chat'
                 ? 'border-[#EC612C] text-white'
                 : 'border-transparent text-white/50 hover:text-white/80'
             }`}
           >
-            <span>💬</span>
+            <MessageSquare className="w-4 h-4 text-[#EC612C]" />
             <span>Guide Chat</span>
           </button>
           <button
             onClick={() => setTab('studio')}
-            className={`py-2.5 px-4 font-medium border-b-2 transition-all flex items-center gap-1.5 ${
+            className={`py-3 px-4 font-medium border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
               tab === 'studio'
                 ? 'border-[#EC612C] text-white'
                 : 'border-transparent text-white/50 hover:text-white/80'
             }`}
           >
-            <span>📚</span>
+            <BookOpen className="w-4 h-4 text-[#EC612C]" />
             <span>NotebookLM Studio</span>
           </button>
           <button
             onClick={() => setTab('safety')}
-            className={`py-2.5 px-4 font-medium border-b-2 transition-all flex items-center gap-1.5 ${
+            className={`py-3 px-4 font-medium border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
               tab === 'safety'
                 ? 'border-[#EC612C] text-white'
                 : 'border-transparent text-white/50 hover:text-white/80'
             }`}
           >
-            <span>🛡️</span>
+            <ShieldCheck className="w-4 h-4 text-[#EC612C]" />
             <span>Safety Sandbox & Vault</span>
           </button>
         </div>
@@ -306,8 +334,13 @@ export const Gaid3ChatDrawer: React.FC<DrawerProps> = ({
               {messages.map((msg, idx) => (
                 <div
                   key={idx}
-                  className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-slide-up`}
+                  className={`flex gap-2.5 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-slide-up`}
                 >
+                  {msg.sender === 'gaid3' && (
+                    <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-[#EC612C] to-[#ff7d45] flex items-center justify-center text-white shrink-0 mt-0.5 shadow-sm">
+                      <Bot className="w-4 h-4" />
+                    </div>
+                  )}
                   <div
                     className={`max-w-[85%] rounded-2xl px-4 py-3 text-xs md:text-sm leading-relaxed ${
                       msg.sender === 'user'
@@ -322,29 +355,42 @@ export const Gaid3ChatDrawer: React.FC<DrawerProps> = ({
                       {msg.timestamp}
                     </span>
                   </div>
+                  {msg.sender === 'user' && (
+                    <div className="w-7 h-7 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-white shrink-0 mt-0.5 shadow-sm">
+                      <User className="w-4 h-4 text-white/80" />
+                    </div>
+                  )}
                 </div>
               ))}
               {/* Quick Starter Chips */}
               {messages.length <= 2 && (
-                <div className="pt-2 pb-1 space-y-2">
+                <div className="pt-2 pb-1 space-y-2.5">
                   <p className="text-[11px] text-white/50 font-medium flex items-center gap-1.5">
-                    <span>💡</span>
+                    <Lightbulb className="w-3.5 h-3.5 text-[#EC612C]" />
                     <span>Tap to ask Gaid3:</span>
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {QUICK_PROMPTS.map((prompt, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => {
-                          setInputMessage(prompt);
-                        }}
-                        className="text-left text-xs p-3 rounded-2xl bg-white/[0.04] hover:bg-[#EC612C]/15 border border-white/10 hover:border-[#EC612C]/60 text-white/90 hover:text-white transition-all shadow-sm hover:scale-[1.01] active:scale-[0.99] flex items-center justify-between group cursor-pointer"
-                      >
-                        <span>{prompt}</span>
-                        <span className="text-[#EC612C] opacity-60 group-hover:opacity-100 transition-opacity ml-2">→</span>
-                      </button>
-                    ))}
+                    {QUICK_PROMPTS.map((item, i) => {
+                      const IconComp = item.icon;
+                      return (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => {
+                            setInputMessage(item.title);
+                          }}
+                          className="text-left text-xs p-3 rounded-2xl bg-white/[0.04] hover:bg-[#EC612C]/15 border border-white/10 hover:border-[#EC612C]/60 text-white/90 hover:text-white transition-all shadow-sm hover:scale-[1.01] active:scale-[0.99] flex items-center justify-between group cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-6 h-6 rounded-lg bg-[#EC612C]/20 border border-[#EC612C]/40 flex items-center justify-center shrink-0 text-[#EC612C]">
+                              <IconComp className="w-3.5 h-3.5" />
+                            </div>
+                            <span className="leading-snug">{item.title}</span>
+                          </div>
+                          <ArrowRight className="w-3.5 h-3.5 text-[#EC612C] opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all ml-2 shrink-0" />
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -373,8 +419,9 @@ export const Gaid3ChatDrawer: React.FC<DrawerProps> = ({
             <div className="space-y-5 text-xs">
               {/* zkLogin Session Pill */}
               <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-2">
-                <h4 className="font-semibold text-white text-xs uppercase tracking-wider">
-                  🔐 Active Sovereign Session
+                <h4 className="font-semibold text-white text-xs uppercase tracking-wider flex items-center gap-2">
+                  <Lock className="w-3.5 h-3.5 text-[#EC612C]" />
+                  <span>Active Sovereign Session</span>
                 </h4>
                 <ZkLoginButton />
               </div>
@@ -382,10 +429,11 @@ export const Gaid3ChatDrawer: React.FC<DrawerProps> = ({
               {/* Pre-Flight Transaction Scanner */}
               <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
                 <div className="flex justify-between items-center">
-                  <h4 className="font-semibold text-white text-xs uppercase tracking-wider">
-                    🛡️ Pre-Flight Safety Sandbox
+                  <h4 className="font-semibold text-white text-xs uppercase tracking-wider flex items-center gap-2">
+                    <ShieldCheck className="w-3.5 h-3.5 text-[#EC612C]" />
+                    <span>Pre-Flight Safety Sandbox</span>
                   </h4>
-                  <span className="text-[10px] text-white/40">Zero Leakage Guarantee</span>
+                  <span className="text-[10px] text-white/40 font-mono">Zero Leakage Guarantee</span>
                 </div>
                 <p className="text-white/60 text-[11px] leading-relaxed">
                   Test raw transaction prompts, dApp allowance requests, or contracts before signing on Sui.
@@ -403,9 +451,19 @@ export const Gaid3ChatDrawer: React.FC<DrawerProps> = ({
                     <button
                       type="submit"
                       disabled={isScanning || !sandboxInput.trim()}
-                      className="px-4 py-2 rounded-xl bg-[#EC612C] text-white font-semibold hover:brightness-110 active:scale-95 transition-all text-xs"
+                      className="px-4 py-2 rounded-xl bg-[#EC612C] text-white font-semibold hover:brightness-110 active:scale-95 transition-all text-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
                     >
-                      {isScanning ? 'Evaluating Risk…' : 'Scan Interaction'}
+                      {isScanning ? (
+                        <>
+                          <RefreshCw className="w-3 h-3 animate-spin" />
+                          <span>Evaluating Risk…</span>
+                        </>
+                      ) : (
+                        <>
+                          <ShieldAlert className="w-3.5 h-3.5" />
+                          <span>Scan Interaction</span>
+                        </>
+                      )}
                     </button>
                   </div>
                 </form>
@@ -437,15 +495,17 @@ export const Gaid3ChatDrawer: React.FC<DrawerProps> = ({
               {/* Walrus Memory Vault */}
               <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3">
                 <div className="flex justify-between items-center">
-                  <h4 className="font-semibold text-white text-xs uppercase tracking-wider">
-                    🧠 Walrus Protocol Decentralized Memory
+                  <h4 className="font-semibold text-white text-xs uppercase tracking-wider flex items-center gap-2">
+                    <Database className="w-3.5 h-3.5 text-[#EC612C]" />
+                    <span>Walrus Protocol Decentralized Memory</span>
                   </h4>
                   <button
                     onClick={handleSyncWalrus}
                     disabled={isSyncing}
-                    className="px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 text-[10px] text-white/90 border border-white/15"
+                    className="px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 text-[10px] text-white/90 border border-white/15 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                   >
-                    {isSyncing ? 'Certifying…' : 'Sync to Walrus'}
+                    <RefreshCw className={`w-3 h-3 ${isSyncing ? 'animate-spin' : ''}`} />
+                    <span>{isSyncing ? 'Certifying…' : 'Sync to Walrus'}</span>
                   </button>
                 </div>
 
@@ -490,20 +550,21 @@ export const Gaid3ChatDrawer: React.FC<DrawerProps> = ({
               <button
                 type="submit"
                 disabled={isLoading || !inputMessage.trim()}
-                className="bg-[#EC612C] hover:bg-[#ff763b] text-white px-5 py-3 rounded-2xl text-xs md:text-sm font-bold active:scale-95 transition-all disabled:opacity-40 flex items-center gap-1.5 shadow-[0_4px_15px_rgba(236,97,44,0.4)] cursor-pointer"
+                className="bg-[#EC612C] hover:bg-[#ff763b] text-white px-5 py-3 rounded-2xl text-xs md:text-sm font-bold active:scale-95 transition-all disabled:opacity-40 flex items-center gap-2 shadow-[0_4px_15px_rgba(236,97,44,0.4)] cursor-pointer"
               >
                 {isLoading ? (
                   <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
                     <span>Send</span>
-                    <span>→</span>
+                    <Send className="w-3.5 h-3.5" />
                   </>
                 )}
               </button>
             </div>
-            <p className="text-[10px] text-white/40 text-center mt-2 font-mono">
-              🛡️ Non-Custodial: Gaid3 will never ask for your seed phrase or private key.
+            <p className="text-[10px] text-white/40 text-center mt-2 font-mono flex items-center justify-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 inline" />
+              <span>Non-Custodial: Gaid3 will never ask for your seed phrase or private key.</span>
             </p>
           </form>
         )}
