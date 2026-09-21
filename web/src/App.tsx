@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { Marquee } from './components/Marquee';
 import { Gaid3ChatDrawer } from './components/Gaid3ChatDrawer';
@@ -15,8 +14,6 @@ export const App: React.FC = () => {
 
   return (
     <main className="min-h-screen w-full bg-black text-white selection:bg-[#EC612C] selection:text-white relative">
-      {/* Floating Glassmorphism Header */}
-      <Navbar onOpenTab={handleOpenTab} />
 
       {/* Hero Section */}
       <Hero onOpenChat={() => handleOpenTab('chat')} />

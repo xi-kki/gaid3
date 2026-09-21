@@ -217,33 +217,44 @@ export const Gaid3ChatDrawer: React.FC<DrawerProps> = ({
     }
   };
 
+  const QUICK_PROMPTS = [
+    '🛡️ How do I safely set up my first Sui wallet?',
+    '🧠 What is Walrus Protocol decentralized memory?',
+    '⚡ What is zkLogin and why is it safer than seed phrases?',
+    '🔍 Scan a contract or airdrop link for scams',
+  ];
+
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex justify-end animate-fadeIn">
-      {/* Slide-over Container */}
-      <div className="h-full w-full max-w-2xl bg-[#0d0d0d] border-l border-white/10 flex flex-col shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xl flex items-center justify-center p-3 sm:p-5 md:p-8 animate-fadeIn">
+      {/* Click outside to close */}
+      <div className="absolute inset-0 -z-10" onClick={onClose} />
+
+      {/* Centered Modern Studio Window */}
+      <div className="relative h-[90vh] w-full max-w-4xl bg-[#111114] border border-[#EC612C]/40 rounded-2xl md:rounded-3xl flex flex-col shadow-[0_0_60px_rgba(236,97,44,0.3)] overflow-hidden">
         {/* Top Header */}
-        <header className="flex items-center justify-between px-5 py-3.5 border-b border-white/10 bg-[#0d0d0d]/90 backdrop-blur-md sticky top-0 z-20">
+        <header className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#141418] sticky top-0 z-20">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#EC612C] to-[#ff7d45] flex items-center justify-center font-bold text-white text-xs shadow-md">
+            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-[#EC612C] to-[#ff7d45] flex items-center justify-center font-black text-white text-sm shadow-[0_0_15px_rgba(236,97,44,0.5)]">
               G3
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="font-semibold text-white text-sm">Gaid3 Suite</h2>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono">
-                  {health?.primaryModel || 'AI Sovereign'}
+                <h2 className="font-bold text-white text-sm md:text-base font-poppins">Gaid3 Sovereign AI Studio</h2>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono border border-emerald-500/30 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>{health?.primaryModel || 'Sui & Walrus Online'}</span>
                 </span>
               </div>
-              <p className="text-[11px] text-white/40">Walrus Decentralized Memory · Zero-Fear Onboarding</p>
+              <p className="text-[11px] text-white/50">Walrus Decentralized Memory · Non-Custodial Zero-Fear Guide</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             <ZkLoginButton />
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white/70 hover:text-white transition-all text-xs"
-              aria-label="Close drawer"
+              className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 flex items-center justify-center text-white/80 hover:text-white transition-all text-sm font-semibold"
+              aria-label="Close dialog"
             >
               ✕
             </button>
@@ -313,6 +324,30 @@ export const Gaid3ChatDrawer: React.FC<DrawerProps> = ({
                   </div>
                 </div>
               ))}
+              {/* Quick Starter Chips */}
+              {messages.length <= 2 && (
+                <div className="pt-2 pb-1 space-y-2">
+                  <p className="text-[11px] text-white/50 font-medium flex items-center gap-1.5">
+                    <span>💡</span>
+                    <span>Tap to ask Gaid3:</span>
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {QUICK_PROMPTS.map((prompt, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => {
+                          setInputMessage(prompt);
+                        }}
+                        className="text-left text-xs p-3 rounded-2xl bg-white/[0.04] hover:bg-[#EC612C]/15 border border-white/10 hover:border-[#EC612C]/60 text-white/90 hover:text-white transition-all shadow-sm hover:scale-[1.01] active:scale-[0.99] flex items-center justify-between group cursor-pointer"
+                      >
+                        <span>{prompt}</span>
+                        <span className="text-[#EC612C] opacity-60 group-hover:opacity-100 transition-opacity ml-2">→</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div ref={chatBottomRef} />
             </div>
           )}
@@ -440,26 +475,36 @@ export const Gaid3ChatDrawer: React.FC<DrawerProps> = ({
         {tab === 'chat' && (
           <form
             onSubmit={handleSendMessage}
-            className="p-3 md:p-4 border-t border-white/10 bg-[#0d0d0d]/95 backdrop-blur-sm sticky bottom-0"
+            className="p-3 md:p-4 border-t border-white/10 bg-[#141418] sticky bottom-0"
           >
-            <div className="flex gap-2 max-w-3xl mx-auto">
+            <div className="flex gap-2 max-w-4xl mx-auto items-center">
               <input
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Ask anything about Web3, Sui, wallets, or safety..."
-                className="flex-1 bg-white/5 border border-white/15 rounded-xl px-4 py-2.5 text-xs md:text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-[#EC612C] transition-colors"
+                placeholder="Ask anything about Web3, Sui testnet, wallets, or safety..."
+                className="flex-1 bg-white/[0.06] border border-white/15 rounded-2xl px-4 py-3 text-xs md:text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-[#EC612C] transition-colors shadow-inner"
                 disabled={isLoading}
                 autoFocus
               />
               <button
                 type="submit"
                 disabled={isLoading || !inputMessage.trim()}
-                className="bg-[#EC612C] text-white px-5 py-2.5 rounded-xl text-xs md:text-sm font-semibold hover:brightness-110 active:scale-95 transition-all disabled:opacity-40"
+                className="bg-[#EC612C] hover:bg-[#ff763b] text-white px-5 py-3 rounded-2xl text-xs md:text-sm font-bold active:scale-95 transition-all disabled:opacity-40 flex items-center gap-1.5 shadow-[0_4px_15px_rgba(236,97,44,0.4)] cursor-pointer"
               >
-                Send
+                {isLoading ? (
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <span>Send</span>
+                    <span>→</span>
+                  </>
+                )}
               </button>
             </div>
+            <p className="text-[10px] text-white/40 text-center mt-2 font-mono">
+              🛡️ Non-Custodial: Gaid3 will never ask for your seed phrase or private key.
+            </p>
           </form>
         )}
       </div>

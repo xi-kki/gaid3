@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-const LEFT_WORDS = ['spark', 'imagine', 'evolve', 'render'];
-const RIGHT_WORDS = ['blaze', 'genesis', 'purpose', 'ignite'];
+const LEFT_WORDS = ['sovereign', 'walrus', 'memory', 'safety'];
+const RIGHT_WORDS = ['patient', 'zero-fear', 'sui-web3', 'companion'];
 
 const HIGGS_IMAGE_URL =
   'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260801_104316_80b428ea-dc99-4399-afb3-8ccb7b34b2d0.png&w=1280&q=85';
@@ -85,7 +85,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
                 transform: `translateY(${layer0Offset})`
               }}
             >
-              BEYOND
+              GAID3
             </h1>
 
             {/* Layer 1 - #EC612C */}
@@ -97,7 +97,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
                 transform: `translateY(${layer1Offset})`
               }}
             >
-              BEYOND
+              GAID3
             </h1>
 
             {/* Layer 2 - #90EE90 */}
@@ -109,7 +109,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
                 transform: `translateY(${layer2Offset})`
               }}
             >
-              BEYOND
+              GAID3
             </h1>
 
             {/* Layer 3 (front) - #FFFFFF */}
@@ -121,7 +121,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
                 transform: 'translateY(0)'
               }}
             >
-              BEYOND
+              GAID3
             </h1>
           </div>
         </div>
@@ -179,18 +179,33 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
         </div>
       </div>
 
+      {/* Layer C: Floating Mission & Value Proposition Header (z-index 20) */}
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 pointer-events-auto px-4 text-center">
+        <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/70 backdrop-blur-md border border-white/20 shadow-2xl">
+          <span className="w-2 h-2 rounded-full bg-[#90EE90] animate-pulse" />
+          <span className="text-xs font-semibold text-white tracking-wide uppercase font-poppins">
+            Gaid3 Sovereign AI
+          </span>
+          <span className="text-white/40">·</span>
+          <span className="text-[11px] text-white/80 font-mono">Walrus Protocol Memory · Sui Testnet</span>
+        </div>
+        <p className="text-xs md:text-sm text-white/90 font-medium drop-shadow-md max-w-xl">
+          Zero-fear Web3 onboarding guide. Step-by-step wallet safety, smart contract pre-flight checks, and sovereign private memory.
+        </p>
+      </div>
+
       {/* Layer A: Character (z-index 10) */}
       <div className="absolute inset-0 z-10 pointer-events-none">
         <img
           src={imageSrc}
           onError={() => setImageSrc(FALLBACK_IMAGE_URL)}
-          alt="Beyond Hero Character"
+          alt="Gaid3 Web3 Guide Character"
           onClick={() => onOpenChat?.()}
           onTouchEnd={(e) => {
             e.preventDefault();
             onOpenChat?.();
           }}
-          title="Click character or press Space to interact with Gaid3 AI"
+          title="Click Gaid3 or press Space to open interactive AI guide"
           className="absolute bottom-0 left-1/2 -translate-x-1/2 w-auto max-w-none block pointer-events-auto cursor-pointer select-none transition-transform hover:scale-[1.01] active:scale-[0.99] duration-200"
           style={{
             height: '115%',
@@ -198,6 +213,20 @@ export const Hero: React.FC<HeroProps> = ({ onOpenChat }) => {
             minHeight: '80%'
           }}
         />
+
+        {/* Floating Call to Action right above bottom */}
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
+          <button
+            onClick={() => onOpenChat?.()}
+            className="group flex items-center gap-3 px-6 py-3.5 rounded-full bg-black/85 hover:bg-black text-white font-bold text-sm border-2 border-[#EC612C] shadow-[0_8px_30px_rgba(236,97,44,0.5)] hover:scale-105 active:scale-95 transition-all"
+          >
+            <span className="text-base">💬</span>
+            <span>Talk to Gaid3 · Start Safe Guide</span>
+            <span className="px-2 py-0.5 rounded bg-white/10 text-[10px] font-mono text-[#90EE90]">
+              Space
+            </span>
+          </button>
+        </div>
       </div>
     </section>
   );

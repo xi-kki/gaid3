@@ -151,10 +151,19 @@ export function useZkLogin() {
         randomness
       );
 
+      let ephemeralPrivateKey = '';
+      try {
+        if (typeof ephemeralKeyPair.getSecretKey === 'function') {
+          ephemeralPrivateKey = ephemeralKeyPair.getSecretKey();
+        } else if (typeof (ephemeralKeyPair as any).exportKeyPair === 'function') {
+          ephemeralPrivateKey = (ephemeralKeyPair as any).exportKeyPair().privateKey;
+        }
+      } catch {}
+
       sessionStorage.setItem(
         'gaid3_ephemeral',
         JSON.stringify({
-          ephemeralPrivateKey: ephemeralKeyPair.getSecretKey(),
+          ephemeralPrivateKey,
           randomness,
           maxEpoch,
           nonce,
@@ -192,10 +201,19 @@ export function useZkLogin() {
       const address = keypair.toSuiAddress();
       const demoSalt = '0x' + Math.random().toString(16).slice(2, 10) + '00000000';
 
+      let secretKey = '';
+      try {
+        if (typeof keypair.getSecretKey === 'function') {
+          secretKey = keypair.getSecretKey();
+        } else if (typeof (keypair as any).exportKeyPair === 'function') {
+          secretKey = (keypair as any).exportKeyPair().privateKey;
+        }
+      } catch {}
+
       sessionStorage.setItem(
         'gaid3_ephemeral',
         JSON.stringify({
-          ephemeralPrivateKey: keypair.getSecretKey(),
+          ephemeralPrivateKey: secretKey,
           randomness: 'demo_randomness',
           maxEpoch: 1000,
           salt: demoSalt,
