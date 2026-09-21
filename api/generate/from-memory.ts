@@ -273,7 +273,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const OPEN_NOTEBOOK_URL = process.env.OPEN_NOTEBOOK_URL?.replace(/\/$/, '');
   const OPEN_NOTEBOOK_PASSWORD = process.env.OPEN_NOTEBOOK_PASSWORD;
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-  const parsed = BodySchema.safeParse(req.body);
+  
+  let parsedBody = req.body;
+  if (typeof parsedBody === 'string') {
+    try {
+      parsedBody = JSON.parse(parsedBody);
+    } catch {
+      parsedBody = {};
+    }
+  }
+
+  const parsed = BodySchema.safeParse(parsedBody);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
   const data = parsed.data;
 

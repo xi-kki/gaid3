@@ -70,7 +70,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(429).json({ error: 'Rate limit exceeded. Please wait a minute.' });
   }
 
-  const { message, context, history } = (req.body || {}) as {
+  let parsedBody = req.body;
+  if (typeof parsedBody === 'string') {
+    try {
+      parsedBody = JSON.parse(parsedBody);
+    } catch {
+      parsedBody = {};
+    }
+  }
+
+  const { message, context, history } = (parsedBody || {}) as {
     message?: string;
     context?: string;
     history?: Array<{ role: string; content: string }>;

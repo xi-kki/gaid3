@@ -127,7 +127,17 @@ export function scanSecurity(actionText: string): SafetyAssessment {
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-  const { actionText } = (req.body || {}) as { actionText?: string };
+  
+  let parsedBody = req.body;
+  if (typeof parsedBody === 'string') {
+    try {
+      parsedBody = JSON.parse(parsedBody);
+    } catch {
+      parsedBody = {};
+    }
+  }
+
+  const { actionText } = (parsedBody || {}) as { actionText?: string };
   if (!actionText) return res.status(400).json({ error: 'actionText is required' });
 
   const result = scanSecurity(actionText);

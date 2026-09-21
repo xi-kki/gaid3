@@ -6,15 +6,27 @@ const ENOKI_API_KEY = process.env.ENOKI_API_KEY;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-  const body = (req.body || {}) as { action: 'get-salt'; token: string };
+  
+  let parsedBody = req.body;
+  if (typeof parsedBody === 'string') {
+    try {
+      parsedBody = JSON.parse(parsedBody);
+    } catch {
+      parsedBody = {};
+    }
+  }
+
+  const body = (parsedBody || {}) as { action?: string; token?: string; jwt?: string };
 
   if (body.action !== 'get-salt') {
     return res.status(400).json({ error: 'Invalid action. Only get-salt supported.' });
   }
 
+  const token = body.token || body.jwt || 'gaid3_sovereign_session_token';
+
   if (!ENOKI_API_KEY) {
     // Demo fallback: return deterministic salt from token (not secure for production)
-    const fallbackSalt = '0x' + Buffer.from(body.token.slice(0, 32)).toString('hex');
+    const fallbackSalt = '0x' + Buffer.from(token.slice(0, 32)).toString('hex');
     return res.json({ salt: fallbackSalt, source: 'demo-fallback', warning: 'ENOKI_API_KEY not configured — using demo salt. Do not use in production.' });
   }
 
@@ -23,7 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const enokiRes = await fetch('https://api.enoki.mystenlabs.com/v1/zklogin', {
       method: 'GET',
       headers: {
-        'zklogin-jwt': body.token,
+        'zklogin-jwt': token,
         Authorization: `Bearer ${ENOKI_API_KEY}`,
       },
     });
@@ -31,15 +43,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!enokiRes.ok) {
       const err = await enokiRes.text();
       // Fallback to demo salt
-      const fallbackSalt = '0x' + Buffer.from(body.token.slice(0, 32)).toString('hex');
+      const fallbackSalt = '0x' + Buffer.from(token.slice(0, 32)).toString('hex');
       return res.json({ salt: fallbackSalt, source: 'demo-fallback', warning: `Enoki error ${enokiRes.status}: ${err.slice(0, 200)}` });
     }
 
     const data = (await enokiRes.json()) as { data?: { salt?: string; address?: string; publicKey?: string } };
-    // Enoki returns { data: { salt, address, publicKey } }
     return res.json({ salt: data.data?.salt, source: 'enoki', address: data.data?.address });
   } catch (err) {
-    const fallbackSalt = '0x' + Buffer.from(body.token.slice(0, 32)).toString('hex');
+    const fallbackSalt = '0x' + Buffer.from(token.slice(0, 32)).toString('hex');
     return res.json({ salt: fallbackSalt, source: 'demo-fallback', warning: `Enoki request failed: ${err instanceof Error ? err.message : 'Unknown'}` });
   }
 }
